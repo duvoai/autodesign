@@ -88,10 +88,11 @@ Per prompt:
 
 ### 4. Screenshotter — `src/inner/screenshot.ts`
 
-Playwright headless Chromium loads `output.html` via `file://` and captures:
+Playwright headless Chromium loads `output.html` via `file://` and captures **scrolled viewport segments**, not a single full-page shot (full-page PNGs of long pages get downscaled into illegibility by the vision model):
 
-- Desktop viewport 1440×900, full-page PNG (primary eval input).
-- Mobile viewport 390×844, full-page PNG (secondary eval input).
+- Desktop viewport 1440×900: scroll from the top one viewport height at a time, one PNG per screen (`<base>.desktop.<i>.png`), capped at 8 segments.
+- Mobile viewport 390×844: same procedure (`<base>.mobile.<i>.png`), capped at 8 segments.
+- The final segment aligns to the bottom of the page (no blank overshoot); trivially short pages produce a single segment per viewport.
 
 Render errors (blank page, JS exception preventing paint) are recorded as failures.
 
@@ -101,8 +102,8 @@ One Opus vision call per prompt per iteration. Inputs:
 
 - The original prompt text and its must-include requirements.
 - The fixed rubric.
-- The candidate screenshots (desktop + mobile).
-- The cached reference screenshot for the same prompt.
+- The candidate screenshot segments: all desktop segments (≤8) in scroll order, plus the first 3 mobile segments.
+- The cached reference desktop segments (≤4) for the same prompt, clearly labeled as the reference.
 
 Output (forced tool-call schema):
 
@@ -143,8 +144,8 @@ prompts.json                          # kept as-is; train/holdout split is autho
 runs/
   reference/
     <prompt-id>.html
-    <prompt-id>.desktop.png
-    <prompt-id>.mobile.png
+    <prompt-id>.desktop.<i>.png       # scrolled segments, i = 0..N-1
+    <prompt-id>.mobile.<i>.png
   <run-id>/
     run.json                          # run metadata: models, concurrency, started_at
     history.jsonl                     # one line per iteration: version, mean score, best_version
@@ -157,8 +158,8 @@ runs/
         prompts/
           <prompt-id>/
             workspace/output.html
-            desktop.png
-            mobile.png
+            candidate.desktop.<i>.png   # scrolled segments
+            candidate.mobile.<i>.png
             eval.json
             build.log
         summary.json                  # aggregates + mutator rationale

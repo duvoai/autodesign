@@ -582,10 +582,11 @@ git commit -m "feat: pi subprocess builder with hermetic flags and failure captu
 **Interfaces:**
 - Produces:
   ```ts
-  type Screenshots = { desktopPng: string; mobilePng: string };
+  type Screenshots = { desktop: string[]; mobile: string[] };   // scroll-ordered segment paths
+  const MAX_SEGMENTS = 8;
   function screenshotPage(htmlPath: string, outDir: string, baseName?: string): Promise<Screenshots>;
   ```
-  Desktop 1440×900, mobile 390×844, both full-page PNG, written as `<outDir>/<baseName>.desktop.png` / `.mobile.png` (baseName defaults to `"candidate"`). Throws on render failure (caller records it).
+  Desktop 1440×900, mobile 390×844. Instead of one full-page shot, scroll one viewport height per step and capture a viewport-sized PNG per screen: `<outDir>/<baseName>.desktop.<i>.png` / `.mobile.<i>.png`, `i` starting at 0, at most `MAX_SEGMENTS` per viewport. The last segment is bottom-aligned (scroll position clamped to `scrollHeight - viewportHeight`) so there is no blank overshoot. A page shorter than one viewport yields exactly one segment. `baseName` defaults to `"candidate"`. Throws on render failure (caller records it).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -595,15 +596,28 @@ import { expect, test } from "bun:test";
 import { mkdtempSync, writeFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { screenshotPage } from "../src/inner/screenshot";
+import { screenshotPage, MAX_SEGMENTS } from "../src/inner/screenshot";
 
-test("captures desktop and mobile pngs", async () => {
+test("long page yields multiple scroll segments per viewport", async () => {
   const dir = mkdtempSync(join(tmpdir(), "shot-"));
   const html = join(dir, "output.html");
-  writeFileSync(html, `<html><body style="background:#0a5"><h1>Hello</h1>${"<p>x</p>".repeat(50)}</body></html>`);
+  // ~4 desktop screens tall
+  writeFileSync(html, `<html><body style="margin:0"><div style="height:3600px;background:linear-gradient(#0a5,#a05)"><h1>Hello</h1></div></body></html>`);
   const shots = await screenshotPage(html, dir);
-  expect(statSync(shots.desktopPng).size).toBeGreaterThan(1000);
-  expect(statSync(shots.mobilePng).size).toBeGreaterThan(1000);
+  expect(shots.desktop.length).toBeGreaterThanOrEqual(3);
+  expect(shots.desktop.length).toBeLessThanOrEqual(MAX_SEGMENTS);
+  expect(shots.mobile.length).toBeGreaterThanOrEqual(4);
+  expect(shots.desktop[0]).toContain("candidate.desktop.0.png");
+  for (const p of [...shots.desktop, ...shots.mobile]) expect(statSync(p).size).toBeGreaterThan(1000);
+}, 60000);
+
+test("short page yields exactly one segment per viewport", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "shot2-"));
+  const html = join(dir, "output.html");
+  writeFileSync(html, `<html><body><h1>Tiny</h1></body></html>`);
+  const shots = await screenshotPage(html, dir);
+  expect(shots.desktop.length).toBe(1);
+  expect(shots.mobile.length).toBe(1);
 }, 60000);
 ```
 
@@ -617,7 +631,9 @@ import { chromium } from "playwright";
 import { pathToFileURL } from "node:url";
 import { join } from "node:path";
 
-export type Screenshots = { desktopPng: string; mobilePng: string };
+export type Screenshots = { desktop: string[]; mobile: string[] };
+
+export const MAX_SEGMENTS = 8;
 
 const VIEWPORTS = [
   { key: "desktop", width: 1440, height: 900 },
@@ -627,17 +643,24 @@ const VIEWPORTS = [
 export async function screenshotPage(htmlPath: string, outDir: string, baseName = "candidate"): Promise<Screenshots> {
   const browser = await chromium.launch();
   try {
-    const out: Record<string, string> = {};
+    const out: Record<string, string[]> = { desktop: [], mobile: [] };
     for (const vp of VIEWPORTS) {
       const page = await browser.newPage({ viewport: { width: vp.width, height: vp.height } });
       await page.goto(pathToFileURL(htmlPath).href, { waitUntil: "load", timeout: 30000 });
       await page.waitForTimeout(500); // settle fonts/animations
-      const path = join(outDir, `${baseName}.${vp.key}.png`);
-      await page.screenshot({ path, fullPage: true });
+      const scrollHeight: number = await page.evaluate(() => document.documentElement.scrollHeight);
+      const segments = Math.min(MAX_SEGMENTS, Math.max(1, Math.ceil(scrollHeight / vp.height)));
+      for (let i = 0; i < segments; i++) {
+        const y = Math.min(i * vp.height, Math.max(0, scrollHeight - vp.height)); // bottom-align last segment
+        await page.evaluate((top) => window.scrollTo(0, top), y);
+        await page.waitForTimeout(150); // let scroll-triggered rendering settle
+        const path = join(outDir, `${baseName}.${vp.key}.${i}.png`);
+        await page.screenshot({ path }); // viewport-sized, NOT fullPage
+        out[vp.key].push(path);
+      }
       await page.close();
-      out[vp.key] = path;
     }
-    return { desktopPng: out.desktop, mobilePng: out.mobile };
+    return { desktop: out.desktop, mobile: out.mobile };
   } finally {
     await browser.close();
   }
@@ -650,7 +673,7 @@ export async function screenshotPage(htmlPath: string, outDir: string, baseName 
 
 ```bash
 git add src/inner/screenshot.ts tests/screenshot.test.ts
-git commit -m "feat: playwright screenshotter, desktop + mobile full-page"
+git commit -m "feat: playwright screenshotter with per-viewport scroll segments"
 ```
 
 ---
@@ -823,10 +846,10 @@ git commit -m "feat: schema-forced tool call helper with retry"
   };
   function evaluatePage(opts: {
     client: LlmClient; model: string; prompt: PromptSpec;
-    candidate: Screenshots; referenceDesktopPng: string;
+    candidate: Screenshots; referenceDesktopPngs: string[];
   }): Promise<EvalResult>;
   ```
-  Default model resolution happens in callers: `process.env.EVAL_MODEL ?? "claude-opus-4-8"`.
+  Image budget per call: all candidate desktop segments (≤8, scroll order, each labeled "Candidate desktop — screen i+1/N"), the first 3 candidate mobile segments, and the first 4 reference desktop segments (labeled as reference). Default model resolution happens in callers: `process.env.EVAL_MODEL ?? "claude-opus-4-8"`.
 
 - [ ] **Step 1: Write rubric**
 
@@ -876,7 +899,7 @@ const valid = {
   overall: 68, vs_reference: "behind", diff_dimensions: ["typography"], critique: "Weak type scale.",
 };
 
-test("returns parsed eval and sends images + rubric", async () => {
+test("returns parsed eval and sends capped image segments + rubric", async () => {
   const dir = mkdtempSync(join(tmpdir(), "eval-"));
   let captured: any;
   const client: LlmClient = {
@@ -885,15 +908,19 @@ test("returns parsed eval and sends images + rubric", async () => {
   const r = await evaluatePage({
     client, model: "test-model",
     prompt: { id: "p", category: "c", split: "train", prompt: "Landing page for X. Must include: hero." },
-    candidate: { desktopPng: png(dir, "d.png"), mobilePng: png(dir, "m.png") },
-    referenceDesktopPng: png(dir, "ref.png"),
+    candidate: {
+      desktop: [png(dir, "d0.png"), png(dir, "d1.png")],
+      mobile: [png(dir, "m0.png"), png(dir, "m1.png"), png(dir, "m2.png"), png(dir, "m3.png")], // 4 → capped to 3
+    },
+    referenceDesktopPngs: [png(dir, "r0.png"), png(dir, "r1.png"), png(dir, "r2.png"), png(dir, "r3.png"), png(dir, "r4.png")], // 5 → capped to 4
   });
   expect(r.overall).toBe(68);
   expect(EvalResultSchema.parse(r)).toEqual(valid as any);
   const text = JSON.stringify(captured.messages);
   expect(text).toContain("requirement_coverage");           // rubric included
+  expect(text).toContain("screen 1/2");                     // segment labeling
   const images = captured.messages[0].content.filter((b: any) => b.type === "image");
-  expect(images.length).toBe(3);                             // desktop, mobile, reference
+  expect(images.length).toBe(2 + 3 + 4);                     // desktop + capped mobile + capped reference
 });
 ```
 
@@ -925,28 +952,40 @@ export type EvalResult = z.infer<typeof EvalResultSchema>;
 
 const RUBRIC = readFileSync(join(import.meta.dir, "../eval/rubric.md"), "utf8");
 
+const MAX_MOBILE = 3;
+const MAX_REFERENCE = 4;
+
 export async function evaluatePage(opts: {
   client: LlmClient;
   model: string;
   prompt: PromptSpec;
   candidate: Screenshots;
-  referenceDesktopPng: string;
+  referenceDesktopPngs: string[];
 }): Promise<EvalResult> {
+  const content: unknown[] = [
+    { type: "text", text: `You are a strict design reviewer.\n\n${RUBRIC}\n\n## Brief\n${opts.prompt.prompt}` },
+    { type: "text", text: "Screenshots are scrolled viewport segments in top-to-bottom order." },
+  ];
+  const desktop = opts.candidate.desktop;
+  desktop.forEach((p, i) => {
+    content.push({ type: "text", text: `Candidate desktop — screen ${i + 1}/${desktop.length}:` }, imageBlock(p));
+  });
+  const mobile = opts.candidate.mobile.slice(0, MAX_MOBILE);
+  mobile.forEach((p, i) => {
+    content.push({ type: "text", text: `Candidate mobile — screen ${i + 1}/${mobile.length}:` }, imageBlock(p));
+  });
+  const refs = opts.referenceDesktopPngs.slice(0, MAX_REFERENCE);
+  refs.forEach((p, i) => {
+    content.push({ type: "text", text: `Reference page for the same brief, desktop — screen ${i + 1}/${refs.length}:` }, imageBlock(p));
+  });
+  content.push({ type: "text", text: "Evaluate the candidate per the rubric and call submit_evaluation." });
+
   return forcedToolCall(opts.client, {
     model: opts.model,
     toolName: "submit_evaluation",
     description: "Submit the structured rubric evaluation of the candidate landing page.",
     zodSchema: EvalResultSchema,
-    content: [
-      { type: "text", text: `You are a strict design reviewer.\n\n${RUBRIC}\n\n## Brief\n${opts.prompt.prompt}` },
-      { type: "text", text: "Candidate — desktop:" },
-      imageBlock(opts.candidate.desktopPng),
-      { type: "text", text: "Candidate — mobile:" },
-      imageBlock(opts.candidate.mobilePng),
-      { type: "text", text: "Reference page for the same brief (desktop):" },
-      imageBlock(opts.referenceDesktopPng),
-      { type: "text", text: "Evaluate the candidate per the rubric and call submit_evaluation." },
-    ],
+    content,
   });
 }
 ```
@@ -1363,7 +1402,8 @@ git commit -m "feat: schema-constrained config mutator with elitist anchoring"
     client: LlmClient; evalModel: string; referenceDir: string;          // runs/reference
   }): Promise<PromptOutcome>;
   ```
-  Steps: `buildPage` (workspace = `<promptDir>/workspace`) → on failure return `build_failed`; `screenshotPage(htmlPath, promptDir)` → on throw return `screenshot_failed`; `evaluatePage` with reference `<referenceDir>/<prompt.id>.desktop.png`, retried internally by `forcedToolCall` → on throw return `eval_failed`; success writes `<promptDir>/eval.json` and returns `ok` with `overall`.
+  Also produces `referenceSegments(referenceDir: string, promptId: string): string[]` — all `<referenceDir>/<promptId>.desktop.<i>.png` paths sorted by segment index (exported for reuse by holdout/orchestrator).
+  Steps: `buildPage` (workspace = `<promptDir>/workspace`) → on failure return `build_failed`; `screenshotPage(htmlPath, promptDir)` → on throw return `screenshot_failed`; `evaluatePage` with `referenceDesktopPngs = referenceSegments(...)`, retried internally by `forcedToolCall` → on throw return `eval_failed`; success writes `<promptDir>/eval.json` and returns `ok` with `overall`.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1393,8 +1433,9 @@ function setup() {
   process.env.PI_BIN = stub;
   const refDir = join(base, "reference");
   mkdirSync(refDir, { recursive: true });
-  writeFileSync(join(refDir, "t1.desktop.png"),
-    Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64"));
+  const png1 = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
+  writeFileSync(join(refDir, "t1.desktop.0.png"), png1);
+  writeFileSync(join(refDir, "t1.desktop.1.png"), png1);
   const promptDir = join(base, "p", "t1");
   mkdirSync(join(promptDir, "workspace"), { recursive: true });
   const client: LlmClient = { messages: { create: async () => ({ content: [{ type: "tool_use", name: "submit_evaluation", input: EVAL }] }) } };
@@ -1452,7 +1493,7 @@ export function pLimit(n: number): <T>(fn: () => Promise<T>) => Promise<T> {
 
 `src/inner/pipeline.ts`:
 ```ts
-import { writeFileSync } from "node:fs";
+import { readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { ResolvedHarness } from "../config/resolver";
 import type { PromptSpec } from "../prompts";
@@ -1461,6 +1502,15 @@ import type { PromptOutcome } from "../store/run-store";
 import { buildPage } from "./build";
 import { screenshotPage } from "./screenshot";
 import { evaluatePage } from "./evaluate";
+
+export function referenceSegments(referenceDir: string, promptId: string): string[] {
+  const re = new RegExp(`^${promptId}\\.desktop\\.(\\d+)\\.png$`);
+  return readdirSync(referenceDir)
+    .map((f) => ({ f, m: f.match(re) }))
+    .filter((x) => x.m)
+    .sort((a, b) => Number(a.m![1]) - Number(b.m![1]))
+    .map((x) => join(referenceDir, x.f));
+}
 
 export async function runPromptPipeline(opts: {
   resolved: ResolvedHarness;
@@ -1483,12 +1533,16 @@ export async function runPromptPipeline(opts: {
   }
 
   try {
+    const refs = referenceSegments(opts.referenceDir, prompt.id);
+    if (!refs.length) {
+      return { prompt_id: prompt.id, status: "eval_failed", overall: 0, error: "no reference segments found" };
+    }
     const evalResult = await evaluatePage({
       client: opts.client,
       model: opts.evalModel,
       prompt,
       candidate: shots,
-      referenceDesktopPng: join(opts.referenceDir, `${prompt.id}.desktop.png`),
+      referenceDesktopPngs: refs,
     });
     writeFileSync(join(promptDir, "eval.json"), JSON.stringify(evalResult, null, 2));
     return { prompt_id: prompt.id, status: "ok", overall: evalResult.overall, eval: evalResult };
@@ -1525,7 +1579,7 @@ git commit -m "feat: per-prompt build/screenshot/evaluate pipeline with pLimit"
   }): Promise<{ built: string[]; skipped: string[]; failed: Array<{ id: string; error: string }> }>;
   function assertReferencesExist(prompts: PromptSpec[], referenceDir: string): void; // throws listing missing ids
   ```
-  Per prompt: skip if `<id>.desktop.png` exists (unless `force`); otherwise build into `<referenceDir>/.work/<id>/workspace`, screenshot with `baseName = prompt.id` directly into `referenceDir`, and copy `output.html` to `<referenceDir>/<id>.html`.
+  Per prompt: skip if `<id>.desktop.0.png` exists (unless `force`); otherwise build into `<referenceDir>/.work/<id>/workspace`, screenshot with `baseName = prompt.id` directly into `referenceDir` (yielding `<id>.desktop.<i>.png` / `<id>.mobile.<i>.png` segments), and copy `output.html` to `<referenceDir>/<id>.html`.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1550,7 +1604,7 @@ test("builds and caches reference pages, skips existing", async () => {
 
   const first = await buildReferenceSet({ prompts, referenceDir: refDir });
   expect(first.built).toEqual(["r1"]);
-  expect(existsSync(join(refDir, "r1.desktop.png"))).toBe(true);
+  expect(existsSync(join(refDir, "r1.desktop.0.png"))).toBe(true);
   expect(existsSync(join(refDir, "r1.html"))).toBe(true);
 
   const second = await buildReferenceSet({ prompts, referenceDir: refDir });
@@ -1603,7 +1657,7 @@ export async function buildReferenceSet(opts: {
   await Promise.all(
     prompts.map((prompt) =>
       limit(async () => {
-        if (!force && existsSync(join(referenceDir, `${prompt.id}.desktop.png`))) {
+        if (!force && existsSync(join(referenceDir, `${prompt.id}.desktop.0.png`))) {
           skipped.push(prompt.id);
           return;
         }
@@ -1625,7 +1679,7 @@ export async function buildReferenceSet(opts: {
 }
 
 export function assertReferencesExist(prompts: PromptSpec[], referenceDir: string): void {
-  const missing = prompts.filter((p) => !existsSync(join(referenceDir, `${p.id}.desktop.png`))).map((p) => p.id);
+  const missing = prompts.filter((p) => !existsSync(join(referenceDir, `${p.id}.desktop.0.png`))).map((p) => p.id);
   if (missing.length) throw new Error(`missing reference screenshots: ${missing.join(", ")} — run \`bun run reference\` first`);
 }
 ```
@@ -1708,7 +1762,7 @@ function setup() {
   process.env.PI_BIN = stub;
   const refDir = join(base, "reference");
   mkdirSync(refDir, { recursive: true });
-  for (const id of ["a", "b", "h1"]) writeFileSync(join(refDir, `${id}.desktop.png`), PNG1);
+  for (const id of ["a", "b", "h1"]) writeFileSync(join(refDir, `${id}.desktop.0.png`), PNG1);
   const store = new RunStore(join(base, "runs"), "test-run");
   store.initRun({});
   return { base, refDir, store };
@@ -1973,7 +2027,7 @@ Temporarily verify with a trimmed prompt file: copy `prompts.json` to `runs/smok
 ```bash
 PI_BIN=pi bun run reference
 ```
-Expected: `runs/reference/<id>.desktop.png` for every prompt id; inspect 2-3 PNGs by eye.
+Expected: `runs/reference/<id>.desktop.0.png` for every prompt id; inspect 2-3 PNGs by eye.
 
 - [ ] **Step 3: One-iteration loop smoke**
 
