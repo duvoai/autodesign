@@ -1,0 +1,20 @@
+{
+  "servers": [
+    {
+      "id": "slack",
+      "transport": "streamable_http",
+      "url": "${SLACK_MCP_URL}",
+      "headers": {
+        "Authorization": "Bearer ${SLACK_MCP_TOKEN}"
+      }
+    },
+    {
+      "id": "notion",
+      "transport": "streamable_http",
+      "url": "${NOTION_MCP_URL}",
+      "headers": {
+        "Authorization": "Bearer ${NOTION_MCP_AUTH_TOKEN}"
+      }
+    }
+  ]
+}

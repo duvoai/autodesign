@@ -1,0 +1,6 @@
+node_modules/
+.env
+.pi/mcp.local.json
+.DS_Store
+dist/
+.env.*

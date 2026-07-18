@@ -1,0 +1,21 @@
+name: triage
+from: agent
+description: Classifies support requests by intent, urgency, customer impact, and escalation need.
+model:
+  name: anthropic/claude-sonnet-4-6
+  thinking_level: medium
+tools:
+  - read
+  - bash
+mcp:
+  slack:
+    include:
+      - slack_read_channel
+      - slack_read_thread
+subagents: []
+skills:
+  - ticket-triage
+system_instructions:
+  mode: append
+  content: |
+    Classify the request, summarize customer impact, identify missing context, and decide whether it is safe for an AI-drafted response.

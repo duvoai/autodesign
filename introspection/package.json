@@ -1,0 +1,48 @@
+{
+  "name": "@introspection-recipes/customer-support",
+  "version": "0.1.1",
+  "description": "Customer support recipe that triages Slack threads, searches Notion, drafts replies, and escalates sensitive requests.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "scripts": {
+    "check": "recipes check . --profile ci",
+    "check:json": "recipes check . --profile ci --json",
+    "prepare": "git config core.hooksPath .githooks || true"
+  },
+  "devDependencies": {
+    "@introspection-ai/pi-recipes": "^0.6.0"
+  },
+  "pi": {
+    "agents": [
+      "agents/*.yaml"
+    ],
+    "skills": [
+      "skills/**/SKILL.md"
+    ],
+    "mcp": {
+      "servers": [
+        {
+          "id": "slack",
+          "required": false,
+          "tools": {
+            "include": [
+              "slack_read_channel",
+              "slack_read_thread",
+              "slack_send_message_draft"
+            ]
+          }
+        },
+        {
+          "id": "notion",
+          "required": false,
+          "tools": {
+            "include": [
+              "API-post-search",
+              "API-retrieve-page-markdown"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

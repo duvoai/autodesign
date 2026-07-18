@@ -1,0 +1,6 @@
+name: customer-support-agent
+runtime_name: customer-support-agent
+path: ./introspection
+description: Customer support recipe for Pi and Introspection Cloud.
+runtime:
+  llm_mode: managed

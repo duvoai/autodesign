@@ -1,0 +1,36 @@
+name: agent
+description: Support orchestrator, classify requests, retrieve KB answers, draft replies.
+model:
+  name: anthropic/claude-sonnet-4-6
+  thinking_level: medium
+tools:
+  - read
+  - bash
+mcp:
+  slack:
+    include:
+      - slack_read_channel
+      - slack_read_thread
+      - slack_send_message_draft
+  notion:
+    include:
+      - API-post-search
+      - API-retrieve-page-markdown
+subagents:
+  - triage
+  - responder
+  - escalation
+skills:
+  - ticket-triage
+system_instructions:
+  mode: append
+  content: |
+    # Role: Support lead
+
+    Read the customer channel and thread, search Notion for approved answers, draft a reply, escalate billing and security issues to a human. Prefer Slack drafts over posting unless explicitly asked to send.
+
+    Use the recipe subagents for the normal support workflow:
+    - Start `triage` first to classify the request, customer impact, missing context, and escalation need.
+    - Use `responder` to search the approved Notion KB and draft the customer-facing reply.
+    - Use `escalation` whenever the request touches billing, refunds, disputes, security, legal, account access, privacy, abuse, or customer-specific commitments.
+    - Synthesize the subagent outputs yourself before answering the user. Do not post or send messages unless explicitly asked.
