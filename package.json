@@ -1,41 +1,22 @@
 {
-  "name": "my-app",
-  "version": "0.5.1",
-  "description": "A monorepo template built with Bun, Hono, Vite, and React",
-  "author": "Steve Simkins",
-  "license": "MIT",
-  "homepage": "https://github.com/stevedylandev/bhvr",
-  "packageManager": "bun@1.2.4",
-  "workspaces": [
-    "./server",
-    "./client",
-    "./shared"
-  ],
+  "name": "autodesign",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "turbo dev",
-    "dev:client": "turbo dev --filter=client",
-    "dev:server": "turbo dev --filter=server",
-    "build": "turbo build",
-    "build:client": "turbo build --filter=client",
-    "build:server": "turbo build --filter=server",
-    "lint": "turbo lint",
-    "type-check": "turbo type-check",
-    "test": "turbo test",
-    "postinstall": "turbo build --filter=shared --filter=server"
+    "reference": "bun src/cli.ts reference",
+    "loop": "bun src/cli.ts loop",
+    "holdout": "bun src/cli.ts holdout",
+    "resume": "bun src/cli.ts resume",
+    "test": "bun test"
   },
-  "keywords": [
-    "bun",
-    "hono",
-    "react",
-    "vite",
-    "monorepo",
-    "turbo"
-  ],
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.60.0",
+    "playwright": "^1.54.0",
+    "zod": "^4.0.0"
+  },
   "devDependencies": {
-    "bun-types": "latest",
-    "turbo": "^2.6.3"
-  },
-  "peerDependencies": {
-    "typescript": "^5.8.3"
+    "@types/bun": "latest",
+    "typescript": "^5.8.0"
   }
 }
