@@ -25,3 +25,42 @@ test("full store lifecycle", () => {
   expect(s.completedIterations()).toEqual([1]);
   expect(s.readHistory().length).toBe(2);
 });
+
+test("completedIterations excludes partial iterations and sorts numerically", () => {
+  const dir = mkdtempSync(join(tmpdir(), "store-"));
+  const s = new RunStore(dir, "run1");
+  s.initRun({ note: "test" });
+
+  // Iteration 1: directory created but no summary.json written (partial).
+  s.iterationDir(1);
+
+  // Iterations 10 and 2 (out of lexicographic order) get summaries saved.
+  s.saveSummary({ iteration: 10, config_version: 0, mean_overall: 50, outcomes: [], dimension_means: {} });
+  s.saveSummary({ iteration: 2, config_version: 0, mean_overall: 60, outcomes: [], dimension_means: {} });
+
+  expect(s.completedIterations()).toEqual([2, 10]);
+});
+
+test("bestVersion keeps the first-appended entry on ties, and falls back on empty history", () => {
+  const dir = mkdtempSync(join(tmpdir(), "store-"));
+  const s = new RunStore(dir, "run1");
+  s.initRun({ note: "test" });
+
+  expect(s.bestVersion()).toEqual({ version: 0, score: -1 });
+
+  s.appendHistory({ iteration: 1, config_version: 0, mean_overall: 70, best_version: 0, best_score: 70 });
+  s.appendHistory({ iteration: 2, config_version: 1, mean_overall: 70, best_version: 0, best_score: 70 });
+
+  expect(s.bestVersion()).toEqual({ version: 0, score: 70 });
+});
+
+test("nextConfigVersion returns 0 before any config is saved", () => {
+  const dir = mkdtempSync(join(tmpdir(), "store-"));
+  const s = new RunStore(dir, "run1");
+  s.initRun({ note: "test" });
+
+  expect(s.nextConfigVersion()).toBe(0);
+
+  s.saveConfig(BASELINE_CONFIG);
+  expect(s.nextConfigVersion()).toBe(1);
+});
