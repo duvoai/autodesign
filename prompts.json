@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "description": "Sample landing page generation prompts for the autodesign loop. The loop optimizes against split=train prompts only; split=holdout prompts are reserved for final validation and must never be used during optimization.",
+  "prompts": [
+    {
+      "id": "saas-crm",
+      "category": "b2b-saas",
+      "split": "train",
+      "prompt": "Landing page for 'Pipeline', a CRM built for small B2B sales teams. Must include: hero with headline and CTA, three feature highlights, a pricing section with three tiers (Free, Pro $29/mo, Team $79/mo), one customer testimonial, and a footer with links."
+    },
+    {
+      "id": "devtool-ci",
+      "category": "dev-tool",
+      "split": "train",
+      "prompt": "Landing page for 'Greenlight', a CI/CD platform that promises 10x faster builds via distributed caching. Developer audience. Must include: hero with a terminal-style code snippet, benchmark comparison section, logos-of-trust bar, and a 'Get started free' CTA."
+    },
+    {
+      "id": "ai-notetaker",
+      "category": "ai-product",
+      "split": "train",
+      "prompt": "Landing page for 'Minute', an AI meeting notetaker that joins calls and produces action items. Must include: hero, a 3-step 'How it works' section, integrations grid (Zoom, Meet, Teams, Slack), privacy reassurance section, and waitlist signup form."
+    },
+    {
+      "id": "fintech-expense",
+      "category": "fintech",
+      "split": "train",
+      "prompt": "Landing page for 'Ledgerly', an expense management card for startups. Must include: hero with product visual, real-time spend controls feature section, security/compliance badges (SOC 2, PCI), comparison against legacy tools, and a demo-request CTA."
+    },
+    {
+      "id": "health-sleep",
+      "category": "health-wellness",
+      "split": "train",
+      "prompt": "Landing page for 'Drift', a sleep tracking app with personalized wind-down routines. Calm, soothing tone. Must include: hero, science-backed claims section with citations placeholder, app store download badges, and a testimonial carousel section."
+    },
+    {
+      "id": "ecommerce-coffee",
+      "category": "ecommerce",
+      "split": "train",
+      "prompt": "Landing page for 'Ember Roast', a single-origin coffee subscription. Must include: hero with product photography placeholder, subscription plan picker (weekly/biweekly/monthly), sourcing story section, star-rating reviews, and a discount-code email capture."
+    },
+    {
+      "id": "edu-course",
+      "category": "education",
+      "split": "train",
+      "prompt": "Landing page for 'Frontend Mastery', a cohort-based course on modern frontend engineering. Must include: hero with next cohort start date, curriculum outline (6 modules), instructor bio section, alumni outcomes stats, and enrollment CTA with seats-remaining indicator."
+    },
+    {
+      "id": "event-conf",
+      "category": "event",
+      "split": "train",
+      "prompt": "Landing page for 'ShipCon 2026', a two-day product engineering conference in San Francisco. Must include: hero with dates and venue, speaker grid (8 speakers), agenda preview, ticket tiers (Early Bird, Standard, Team of 5), and sponsor logos section."
+    },
+    {
+      "id": "nonprofit-ocean",
+      "category": "nonprofit",
+      "split": "train",
+      "prompt": "Landing page for 'BlueShield', a nonprofit removing plastic from oceans. Must include: emotional hero, impact stats counters (tons removed, coastlines cleaned), how-donations-work breakdown, monthly giving tiers, and a donate CTA. No dark patterns."
+    },
+    {
+      "id": "mobile-fitness",
+      "category": "mobile-app",
+      "split": "train",
+      "prompt": "Landing page for 'RepCount', a strength training app with AI form feedback via phone camera. Must include: hero with phone mockup, feature trio, before/after social proof section, pricing (free with premium upsell), and app store badges."
+    },
+    {
+      "id": "marketplace-freelance",
+      "category": "marketplace",
+      "split": "train",
+      "prompt": "Landing page for 'Craftfolk', a marketplace connecting homeowners with vetted local carpenters. Two audiences: must include separate CTA paths for homeowners and carpenters, trust/vetting explanation, project photo gallery grid, and a how-it-works section."
+    },
+    {
+      "id": "b2b-security",
+      "category": "b2b-saas",
+      "split": "train",
+      "prompt": "Landing page for 'Vaultic', an enterprise secrets management platform. Serious, trustworthy tone for CISOs. Must include: hero, threat-model explanation section, compliance certifications grid, customer case study teaser, and a 'Talk to sales' CTA with form."
+    },
+    {
+      "id": "creator-newsletter",
+      "category": "creator",
+      "split": "train",
+      "prompt": "Landing page for 'The Monday Dispatch', a weekly newsletter on climate tech investing. Must include: hero with one-line value prop and email capture above the fold, sample issue excerpts, subscriber count social proof, and testimonials from named readers."
+    },
+    {
+      "id": "gaming-indie",
+      "category": "gaming",
+      "split": "train",
+      "prompt": "Landing page for 'Hollowlight', an atmospheric indie puzzle-platformer launching on Steam. Moody, cinematic feel. Must include: hero with trailer placeholder, screenshot gallery, feature list, wishlist-on-Steam CTA, and press quotes section."
+    },
+    {
+      "id": "local-restaurant",
+      "category": "local-business",
+      "split": "train",
+      "prompt": "Landing page for 'Casa Verde', a modern Mexican restaurant in Oakland. Must include: hero with ambiance imagery placeholder, menu highlights section, hours and location with map placeholder, reservation CTA, and an Instagram feed section."
+    },
+    {
+      "id": "holdout-proptech",
+      "category": "proptech",
+      "split": "holdout",
+      "prompt": "Landing page for 'Keyway', a platform that lets renters build credit by reporting on-time rent payments. Must include: hero, how-it-works in 3 steps, bank-level security reassurance, pricing (free via partner landlords, $5/mo direct), and FAQ section."
+    },
+    {
+      "id": "holdout-agritech",
+      "category": "agritech",
+      "split": "holdout",
+      "prompt": "Landing page for 'Verdant', drone-based crop monitoring for mid-size farms. Must include: hero with aerial imagery placeholder, ROI calculator teaser section, supported crops grid, seasonal pricing plans, and a 'Book a field demo' CTA."
+    },
+    {
+      "id": "holdout-legaltech",
+      "category": "legaltech",
+      "split": "holdout",
+      "prompt": "Landing page for 'Briefcase', AI-assisted contract review for solo attorneys. Must include: hero, time-saved stats section, side-by-side before/after redline example, bar-association compliance note, and a free trial CTA."
+    },
+    {
+      "id": "holdout-podcast",
+      "category": "creator",
+      "split": "holdout",
+      "prompt": "Landing page for 'Signal Path', a podcast interviewing infrastructure engineers. Must include: hero with latest episode player placeholder, episode list section, guest highlight grid, platform badges (Spotify, Apple, YouTube), and newsletter signup."
+    },
+    {
+      "id": "holdout-travel",
+      "category": "travel",
+      "split": "holdout",
+      "prompt": "Landing page for 'Wayfare', a group trip planning app that syncs itineraries, splits costs, and votes on activities. Must include: hero, feature trio with playful illustrations placeholder, sample itinerary visual section, social proof, and app download CTA."
+    }
+  ]
+}
