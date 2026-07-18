@@ -122,9 +122,31 @@ function pickPrompts(iteration: number): { screen: PromptEntry[]; confirm: Promp
   return { screen: rotated.slice(0, SCREEN_SIZE), confirm: rotated.slice(SCREEN_SIZE, SCREEN_SIZE + CONFIRM_SIZE) };
 }
 
+/** Rebuild proposer history from the persistent log so new runs learn from prior verdicts */
+function seedHistory(): string[] {
+  if (!fs.existsSync(LOG)) return [];
+  const events = fs.readFileSync(LOG, "utf8").trim().split("\n").map((l) => JSON.parse(l));
+  const rationales = new Map(
+    events.filter((e) => e.event === "propose").map((e) => [e.candidate, e.rationale]),
+  );
+  const history: string[] = [];
+
+  for (const e of events) {
+    if (e.event === "screen" && e.wins < WIN_THRESHOLD) {
+      history.push(`REJECTED(screen ${e.wins}/${SCREEN_SIZE}): ${rationales.get(e.candidate) ?? "?"}`);
+    } else if (e.event === "confirm" && e.wins < WIN_THRESHOLD) {
+      history.push(`REJECTED(confirm ${e.wins}/${CONFIRM_SIZE}): ${rationales.get(e.candidate) ?? "?"}`);
+    } else if (e.event === "accept") {
+      history.push(`ACCEPTED(${e.genome}): ${e.rationale}`);
+    }
+  }
+  return history;
+}
+
 async function main(): Promise<void> {
   const maxIterations = Number(process.argv[2] ?? 10);
-  const history: string[] = [];
+  const history: string[] = seedHistory();
+  if (history.length) console.log(`seeded ${history.length} history entries from log`);
 
   for (let i = 0; i < maxIterations; i++) {
     console.log(`\n=== iteration ${i} (incumbent ${genomeHash(GENOME_CURRENT)}) ===`);
