@@ -57,12 +57,41 @@ export async function generate(
     return { ok: true, outDir, htmlPath: htmlOut, durationMs: 0 };
   }
 
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "autoloop-gen-"));
   const systemFile = path.join(genomeDir, "system.md");
   const task = `${promptText}\n\nDeliverable: write the complete page to index.html in the current working directory, then stop.`;
   const started = Date.now();
+  const backoffsMs = [0, 20000, 45000];
+  let lastError = "unknown";
 
-  const result = await new Promise<{ code: number | null; timedOut: boolean }>((resolve) => {
+  for (let attempt = 0; attempt < backoffsMs.length; attempt++) {
+    if (backoffsMs[attempt]) await new Promise((r) => setTimeout(r, backoffsMs[attempt]));
+
+    const outcome = await attemptOnce(promptId, systemFile, task);
+    if (outcome.htmlSrc) {
+      const durationMs = Date.now() - started;
+      fs.mkdirSync(outDir, { recursive: true });
+      fs.copyFileSync(outcome.htmlSrc, htmlOut);
+      fs.writeFileSync(
+        path.join(outDir, "meta.json"),
+        JSON.stringify({ promptId, genome: hash, model: "kimi-k3", durationMs, attempt }, null, 2),
+      );
+      fs.rmSync(path.dirname(outcome.htmlSrc), { recursive: true, force: true });
+      return { ok: true, outDir, htmlPath: htmlOut, durationMs };
+    }
+    lastError = outcome.error;
+    console.error(`[${promptId}] attempt ${attempt} failed: ${lastError}`);
+  }
+  return { ok: false, outDir, error: lastError, durationMs: Date.now() - started };
+}
+
+async function attemptOnce(
+  promptId: string,
+  systemFile: string,
+  task: string,
+): Promise<{ htmlSrc?: string; error: string }> {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "autoloop-gen-"));
+
+  const result = await new Promise<{ code: number | null; timedOut: boolean; tail: string }>((resolve) => {
     const child = spawn(
       "pi",
       [
@@ -77,44 +106,39 @@ export async function generate(
         "--append-system-prompt", systemFile,
         task,
       ],
-      { cwd: tmp, env: process.env, stdio: ["ignore", "ignore", "pipe"] },
+      { cwd: tmp, env: process.env, stdio: ["ignore", "pipe", "pipe"] },
     );
 
-    let stderr = "";
-    child.stderr.on("data", (d) => (stderr += d));
+    // Moonshot API errors surface on stdout in -p mode; keep the tail of both streams
+    let tail = "";
+    const keep = (d: Buffer) => (tail = (tail + d.toString()).slice(-600));
+    child.stdout.on("data", keep);
+    child.stderr.on("data", keep);
 
     const timer = setTimeout(() => {
       child.kill("SIGKILL");
-      resolve({ code: null, timedOut: true });
+      resolve({ code: null, timedOut: true, tail });
     }, PI_TIMEOUT_MS);
 
     child.on("close", (code) => {
       clearTimeout(timer);
-      if (code !== 0 && stderr) console.error(`[${promptId}] pi stderr: ${stderr.slice(0, 500)}`);
-      resolve({ code, timedOut: false });
+      resolve({ code, timedOut: false, tail });
     });
   });
 
-  const durationMs = Date.now() - started;
   const produced = path.join(tmp, "index.html");
-  const fail = (error: string): GenResult => {
+  const fail = (error: string) => {
     fs.rmSync(tmp, { recursive: true, force: true });
-    return { ok: false, outDir, error, durationMs };
+    return { error };
   };
 
   if (result.timedOut) return fail("timeout");
-  if (!fs.existsSync(produced)) return fail(`no index.html produced (exit ${result.code})`);
+  if (!fs.existsSync(produced)) {
+    return fail(`no index.html (exit ${result.code}): ${result.tail.replace(/\s+/g, " ").trim()}`);
+  }
   if (fs.statSync(produced).size < MIN_HTML_BYTES) return fail("index.html too small");
 
-  fs.mkdirSync(outDir, { recursive: true });
-  fs.copyFileSync(produced, htmlOut);
-  fs.writeFileSync(
-    path.join(outDir, "meta.json"),
-    JSON.stringify({ promptId, genome: hash, model: "kimi-k3", durationMs }, null, 2),
-  );
-  fs.rmSync(tmp, { recursive: true, force: true });
-
-  return { ok: true, outDir, htmlPath: htmlOut, durationMs };
+  return { htmlSrc: produced, error: "" };
 }
 
 export function loadPrompts(split?: "train" | "holdout") {

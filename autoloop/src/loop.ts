@@ -18,6 +18,16 @@ const MIN_DECISIVE = 3;
 
 interface PromptEntry { id: string; prompt: string }
 
+/** Run fn over items with at most `limit` in flight */
+async function pooled<T>(items: T[], limit: number, fn: (item: T) => Promise<unknown>): Promise<void> {
+  const queue = [...items];
+  await Promise.all(
+    Array.from({ length: Math.min(limit, queue.length) }, async () => {
+      while (queue.length) await fn(queue.shift()!);
+    }),
+  );
+}
+
 function log(entry: Record<string, unknown>): void {
   fs.mkdirSync(path.dirname(LOG), { recursive: true });
   fs.appendFileSync(LOG, JSON.stringify({ ts: new Date().toISOString(), ...entry }) + "\n");
@@ -62,9 +72,9 @@ async function stage(
   let decisive = 0;
   const results: Record<string, string> = {};
 
-  // Generations are the latency bottleneck: run them in parallel first
-  await Promise.all(prompts.map((p) => generate(p.id, p.prompt, candDir)));
-  await Promise.all(prompts.map((p) => generate(p.id, p.prompt, incDir)));
+  // Generations are the latency bottleneck, but Moonshot rate-limits concurrency: pool of 2
+  await pooled(prompts, 2, (p) => generate(p.id, p.prompt, candDir));
+  await pooled(prompts, 2, (p) => generate(p.id, p.prompt, incDir));
 
   for (const p of prompts) {
     const cand = await preparePage(p, candDir);
@@ -129,9 +139,11 @@ function seedHistory(): string[] {
   const rationales = new Map(
     events.filter((e) => e.event === "propose").map((e) => [e.candidate, e.rationale]),
   );
+  const invalidated = new Set(events.filter((e) => e.event === "invalidate").map((e) => e.candidate));
   const history: string[] = [];
 
   for (const e of events) {
+    if (invalidated.has(e.candidate)) continue;
     if (e.event === "screen" && e.wins < WIN_THRESHOLD) {
       history.push(`REJECTED(screen ${e.wins}/${SCREEN_SIZE}): ${rationales.get(e.candidate) ?? "?"}`);
     } else if (e.event === "confirm" && e.wins < WIN_THRESHOLD) {
