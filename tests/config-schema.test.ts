@@ -25,18 +25,30 @@ test("normalizes model given as a bare string (mutator flattening)", () => {
   expect(parsed.model).toEqual({ name: "anthropic/claude-sonnet-4-6", thinking_level: "medium" });
 });
 
-test("normalizes model object missing thinking_level", () => {
-  const partial = { ...BASELINE_CONFIG, model: { name: "anthropic/claude-opus-4-8" } };
+test("defaults a missing thinking_level to medium", () => {
+  const partial = { ...BASELINE_CONFIG, model: { name: "anthropic/claude-sonnet-4-6" } };
   const parsed = HarnessConfigSchema.parse(partial);
-  expect(parsed.model).toEqual({ name: "anthropic/claude-opus-4-8", thinking_level: "medium" });
+  expect(parsed.model).toEqual({ name: "anthropic/claude-sonnet-4-6", thinking_level: "medium" });
 });
 
 test("preserves an explicit thinking_level", () => {
-  const explicit = { ...BASELINE_CONFIG, model: { name: "x", thinking_level: "high" } };
-  expect(HarnessConfigSchema.parse(explicit).model).toEqual({ name: "x", thinking_level: "high" });
+  const explicit = { ...BASELINE_CONFIG, model: { name: "anthropic/claude-sonnet-4-6", thinking_level: "high" } };
+  expect(HarnessConfigSchema.parse(explicit).model).toEqual({ name: "anthropic/claude-sonnet-4-6", thinking_level: "high" });
+});
+
+test("recovers the real model name from leaked tool-call markup", () => {
+  // Exact corruption observed from the mutator that broke every build in a run.
+  const corrupted = { ...BASELINE_CONFIG, model: { name: '\n<parameter name="name">anthropic/claude-sonnet-4-6', thinking_level: "medium" } };
+  const parsed = HarnessConfigSchema.parse(corrupted);
+  expect(parsed.model.name).toBe("anthropic/claude-sonnet-4-6");
+});
+
+test("coerces an unknown/unrunnable model name to the default", () => {
+  const unknown = { ...BASELINE_CONFIG, model: { name: "gpt-4o-mega", thinking_level: "medium" } };
+  expect(HarnessConfigSchema.parse(unknown).model.name).toBe("anthropic/claude-sonnet-4-6");
 });
 
 test("still rejects a model with an invalid thinking_level", () => {
-  const bad = { ...BASELINE_CONFIG, model: { name: "x", thinking_level: "ultra" } };
+  const bad = { ...BASELINE_CONFIG, model: { name: "anthropic/claude-sonnet-4-6", thinking_level: "ultra" } };
   expect(() => HarnessConfigSchema.parse(bad)).toThrow();
 });

@@ -16,21 +16,42 @@ export const SubagentSchema = z.object({
   tools: z.array(z.enum(ALLOWED_TOOLS)),
 });
 
+// Builder model must be a string `pi` actually accepts. Only allowlisted names are permitted; the
+// mutator cannot invent model ids. Extend this list once other `pi` model strings are verified to build.
+export const DEFAULT_MODEL = "anthropic/claude-sonnet-4-6";
+// Verified against `pi --list-models` — these exact strings resolve for the builder subprocess.
+export const ALLOWED_MODELS = [
+  "anthropic/claude-sonnet-4-6",
+  "anthropic/claude-haiku-4-5",
+  "anthropic/claude-opus-4-8",
+] as const;
+
 export const ModelSchema = z.object({
-  name: z.string().min(1),
+  name: z.enum(ALLOWED_MODELS),
   thinking_level: z.enum(THINKING_LEVELS),
 });
 
-// The mutator LLM sometimes flattens `model` to a bare string (e.g. "anthropic/claude-sonnet-4-6")
-// or omits thinking_level. Normalize those into the canonical object before validation so a single
-// stray shape doesn't crash a whole run. z.toJSONSchema still emits the strict object, so the tool
-// schema keeps guiding the model toward the correct shape.
+// The mutator LLM misbehaves in two observed ways: (1) it flattens `model` to a bare string or omits
+// thinking_level; (2) it leaks tool-call markup into the value, e.g. `\n<parameter name="name">anthropic/...`,
+// which `pi` then rejects as an unknown model and every build fails. Normalize before validation: strip any
+// embedded markup/whitespace, keep the name only if it is allowlisted, otherwise fall back to DEFAULT_MODEL,
+// and default a missing thinking_level to medium. This keeps one stray shape from crashing or wedging a run.
+const cleanModelName = (n: unknown): (typeof ALLOWED_MODELS)[number] => {
+  const s = typeof n === "string" ? n.replace(/<[^>]*>/g, "").trim() : "";
+  return (ALLOWED_MODELS as readonly string[]).includes(s) ? (s as (typeof ALLOWED_MODELS)[number]) : DEFAULT_MODEL;
+};
+
 const ModelField = z.preprocess((v) => {
-  if (typeof v === "string") return { name: v, thinking_level: "medium" };
-  if (v && typeof v === "object" && !Array.isArray(v) && !("thinking_level" in (v as Record<string, unknown>))) {
-    return { thinking_level: "medium", ...(v as Record<string, unknown>) };
-  }
-  return v;
+  const obj =
+    typeof v === "string"
+      ? { name: v }
+      : v && typeof v === "object" && !Array.isArray(v)
+        ? { ...(v as Record<string, unknown>) }
+        : {};
+  return {
+    name: cleanModelName((obj as Record<string, unknown>).name),
+    thinking_level: "thinking_level" in obj ? (obj as Record<string, unknown>).thinking_level : "medium",
+  };
 }, ModelSchema);
 
 export const HarnessConfigSchema = z.object({

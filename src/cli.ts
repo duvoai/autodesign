@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 import { join } from "node:path";
 import { loadPrompts, trainPrompts, holdoutPrompts } from "./prompts";
+import { ALLOWED_MODELS } from "./config/schema";
 import { RunStore } from "./store/run-store";
 import { realClient } from "./llm";
 import { runLoop, runHoldout } from "./orchestrator";
@@ -19,11 +20,19 @@ const { values } = parseArgs({
     concurrency: { type: "string", default: "5" },
     version: { type: "string" },
     force: { type: "boolean", default: false },
+    limit: { type: "string" },
+    model: { type: "string" },
   },
 });
 
 const all = loadPrompts();
 const concurrency = Number(values.concurrency);
+const limit = values.limit ? Number(values.limit) : undefined;
+const builderModel = values.model;
+if (builderModel && !(ALLOWED_MODELS as readonly string[]).includes(builderModel)) {
+  console.error(`--model must be one of: ${ALLOWED_MODELS.join(", ")}`);
+  process.exit(1);
+}
 
 async function main() {
   switch (command) {
@@ -41,13 +50,14 @@ async function main() {
     case "resume": {
       const runId = values["run-id"] ?? `run-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")}`;
       if (command === "resume" && !values["run-id"]) throw new Error("resume requires --run-id");
-      const train = trainPrompts(all);
+      const train = limit ? trainPrompts(all).slice(0, limit) : trainPrompts(all);
       const store = new RunStore(RUNS_DIR, runId);
-      store.initRun({ eval_model: EVAL_MODEL, concurrency });
-      console.log(`run: ${runId}`);
+      store.initRun({ eval_model: EVAL_MODEL, concurrency, prompt_count: train.length, builder_model: builderModel ?? "(baseline default)" });
+      console.log(`run: ${runId} — ${train.length} train prompt(s): ${train.map((p) => p.id).join(", ")}${builderModel ? ` — builder model: ${builderModel}` : ""}`);
       await runLoop({
         store, prompts: train, iterations: Number(values.iterations), concurrency,
         client: realClient(), evalModel: EVAL_MODEL, referenceDir: REFERENCE_DIR,
+        builderModel,
       });
       const best = store.bestVersion();
       console.log(`done. best config: v${best.version} (mean ${best.score.toFixed(1)})`);
@@ -68,7 +78,7 @@ async function main() {
       break;
     }
     default:
-      console.error("usage: bun src/cli.ts <reference|loop|resume|holdout> [options]");
+      console.error("usage: bun src/cli.ts <reference|loop|resume|holdout> [--iterations N] [--limit N] [--concurrency N] [--run-id X] [--version V]");
       process.exit(1);
   }
 }

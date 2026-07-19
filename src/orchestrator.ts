@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { BASELINE_CONFIG } from "./config/schema";
+import { BASELINE_CONFIG, HarnessConfigSchema } from "./config/schema";
 import { resolveHarness } from "./config/resolver";
 import { runPromptPipeline } from "./inner/pipeline";
 import { aggregate } from "./outer/aggregate";
@@ -19,11 +19,17 @@ export async function runLoop(opts: {
   evalModel: string;
   referenceDir: string;
   startIteration?: number;
+  builderModel?: string;
 }): Promise<void> {
-  const { store, prompts, client, evalModel, referenceDir, concurrency } = opts;
+  const { store, prompts, client, evalModel, referenceDir, concurrency, builderModel } = opts;
   if (prompts.some((p) => p.split !== "train")) throw new Error("runLoop accepts train prompts only");
 
-  if (store.listConfigVersions().length === 0) store.saveConfig(BASELINE_CONFIG);
+  // Optionally pin the builder model for the whole run (an experiment parameter, not something the
+  // mutator controls) so the run stays on the chosen model regardless of what the mutator proposes.
+  const pinModel = (c: typeof BASELINE_CONFIG) =>
+    builderModel ? HarnessConfigSchema.parse({ ...c, model: { ...c.model, name: builderModel } }) : c;
+
+  if (store.listConfigVersions().length === 0) store.saveConfig(pinModel(BASELINE_CONFIG));
   const completed = store.completedIterations();
   const start = opts.startIteration ?? (completed.length ? Math.max(...completed) + 1 : 1);
 
@@ -85,7 +91,7 @@ export async function runLoop(opts: {
       client, model: evalModel, bestConfig, latestSummary: summary,
       history: historyEntries, pastRationales, nextVersion: store.nextConfigVersion(),
     });
-    store.saveConfig(next);
+    store.saveConfig(pinModel(next));
     summary.mutator_rationale = next.rationale;
     store.saveSummary(summary);
   }

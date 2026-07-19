@@ -91,6 +91,20 @@ test("resume after mid-iteration crash does not duplicate history or re-pick con
   expect(store.completedIterations()).toEqual([1]);
 }, 120000);
 
+test("builderModel pins the model across seed and mutations", async () => {
+  const { refDir, store } = setup();
+  await runLoop({
+    store, prompts: [P("a", "train")], iterations: 2, concurrency: 1,
+    client: fakeClient(), evalModel: "m", referenceDir: refDir,
+    builderModel: "anthropic/claude-haiku-4-5",
+  });
+  // seeded baseline (v0) and every mutated config must carry the pinned model, even though the
+  // fake mutator proposes a config with the default sonnet model.
+  for (const v of store.listConfigVersions()) {
+    expect(store.loadConfig(v).model.name).toBe("anthropic/claude-haiku-4-5");
+  }
+}, 120000);
+
 test("holdout writes report without touching history", async () => {
   const { refDir, store, base } = setup();
   await runLoop({
