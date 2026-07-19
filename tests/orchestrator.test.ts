@@ -13,16 +13,11 @@ const EVAL = {
   overall: 62, vs_reference: "behind", diff_dimensions: [], critique: "ok",
 };
 
+// The evaluator is the only remaining Anthropic-SDK call; mutation now goes through the pi subprocess.
 function fakeClient(): LlmClient {
   return {
     messages: {
-      create: async (params: any) => {
-        const isMutate = JSON.stringify(params.tools).includes("propose_config");
-        if (isMutate) {
-          return { content: [{ type: "tool_use", name: "propose_config", input: { ...BASELINE_CONFIG, rationale: "tweak", version: 0, parent_version: null } }] };
-        }
-        return { content: [{ type: "tool_use", name: "submit_evaluation", input: EVAL }] };
-      },
+      create: async () => ({ content: [{ type: "tool_use", name: "submit_evaluation", input: EVAL }] }),
     },
   };
 }
@@ -30,10 +25,16 @@ function fakeClient(): LlmClient {
 // References are optional / deferred — no reference PNGs are written in setup.
 // The loop must work reference-free: the pipeline tolerates an empty reference dir
 // and scores rubric-only, so outcomes are still `ok` with the fake eval's overall score.
+// The pi stub serves BOTH roles: the agentic mutator invocation (its instruction names
+// next-config.json) writes a valid config; every other invocation is a builder and writes output.html.
 function setup() {
   const base = mkdtempSync(join(tmpdir(), "orch-"));
   const stub = join(base, "pi.sh");
-  writeFileSync(stub, `#!/bin/bash\nprintf '%s' '${PAGE}' > output.html\n`);
+  const CONFIG = JSON.stringify({ ...BASELINE_CONFIG, rationale: "tweak" });
+  writeFileSync(
+    stub,
+    `#!/bin/bash\nif printf '%s ' "$@" | grep -q 'next-config.json'; then\ncat > next-config.json <<'CFGEOF'\n${CONFIG}\nCFGEOF\nelse\nprintf '%s' '${PAGE}' > output.html\nfi\n`,
+  );
   chmodSync(stub, 0o755);
   process.env.PI_BIN = stub;
   const refDir = join(base, "reference"); // exists but empty — reference-free
@@ -48,7 +49,7 @@ test("two iterations: configs, summaries, history, best tracking", async () => {
   const { refDir, store } = setup();
   await runLoop({
     store, prompts: [P("a", "train"), P("b", "train")], iterations: 2, concurrency: 2,
-    client: fakeClient(), evalModel: "m", referenceDir: refDir,
+    client: fakeClient(), evalModel: "m", referenceDir: refDir, mutatorModel: "m",
   });
   expect(store.completedIterations()).toEqual([1, 2]);
   expect(store.readHistory().length).toBe(2);
@@ -63,7 +64,7 @@ test("resume after mid-iteration crash does not duplicate history or re-pick con
   const { refDir, store } = setup();
   await runLoop({
     store, prompts: [P("a", "train"), P("b", "train")], iterations: 1, concurrency: 2,
-    client: fakeClient(), evalModel: "m", referenceDir: refDir,
+    client: fakeClient(), evalModel: "m", referenceDir: refDir, mutatorModel: "m",
   });
 
   expect(store.readHistory().length).toBe(1);
@@ -81,7 +82,7 @@ test("resume after mid-iteration crash does not duplicate history or re-pick con
   // Resume: startIteration defaults to last-completed+1 == 1 again.
   await runLoop({
     store, prompts: [P("a", "train"), P("b", "train")], iterations: 1, concurrency: 2,
-    client: fakeClient(), evalModel: "m", referenceDir: refDir,
+    client: fakeClient(), evalModel: "m", referenceDir: refDir, mutatorModel: "m",
   });
 
   const history = store.readHistory();
@@ -95,7 +96,7 @@ test("builderModel pins the model across seed and mutations", async () => {
   const { refDir, store } = setup();
   await runLoop({
     store, prompts: [P("a", "train")], iterations: 2, concurrency: 1,
-    client: fakeClient(), evalModel: "m", referenceDir: refDir,
+    client: fakeClient(), evalModel: "m", referenceDir: refDir, mutatorModel: "m",
     builderModel: "anthropic/claude-haiku-4-5",
   });
   // seeded baseline (v0) and every mutated config must carry the pinned model, even though the
@@ -109,7 +110,7 @@ test("holdout writes report without touching history", async () => {
   const { refDir, store, base } = setup();
   await runLoop({
     store, prompts: [P("a", "train")], iterations: 1, concurrency: 1,
-    client: fakeClient(), evalModel: "m", referenceDir: refDir,
+    client: fakeClient(), evalModel: "m", referenceDir: refDir, mutatorModel: "m",
   });
   const before = store.readHistory().length;
   const summary = await runHoldout({

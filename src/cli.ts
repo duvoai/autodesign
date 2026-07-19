@@ -10,6 +10,7 @@ import { buildReferenceSet } from "./reference/build-reference";
 const RUNS_DIR = "runs";
 const REFERENCE_DIR = join(RUNS_DIR, "reference");
 const EVAL_MODEL = process.env.EVAL_MODEL ?? "claude-opus-4-8";
+const MUTATOR_MODEL = process.env.MUTATOR_MODEL ?? "anthropic/claude-fable-5";
 
 const [command] = Bun.argv.slice(2);
 const { values } = parseArgs({
@@ -52,12 +53,12 @@ async function main() {
       if (command === "resume" && !values["run-id"]) throw new Error("resume requires --run-id");
       const train = limit ? trainPrompts(all).slice(0, limit) : trainPrompts(all);
       const store = new RunStore(RUNS_DIR, runId);
-      store.initRun({ eval_model: EVAL_MODEL, concurrency, prompt_count: train.length, builder_model: builderModel ?? "(baseline default)" });
-      console.log(`run: ${runId} — ${train.length} train prompt(s): ${train.map((p) => p.id).join(", ")}${builderModel ? ` — builder model: ${builderModel}` : ""}`);
+      store.initRun({ eval_model: EVAL_MODEL, mutator_model: MUTATOR_MODEL, concurrency, prompt_count: train.length, builder_model: builderModel ?? "(baseline default)" });
+      console.log(`run: ${runId} — ${train.length} train prompt(s): ${train.map((p) => p.id).join(", ")}${builderModel ? ` — builder: ${builderModel}` : ""} — mutator: ${MUTATOR_MODEL}`);
       await runLoop({
         store, prompts: train, iterations: Number(values.iterations), concurrency,
         client: realClient(), evalModel: EVAL_MODEL, referenceDir: REFERENCE_DIR,
-        builderModel,
+        builderModel, mutatorModel: MUTATOR_MODEL,
       });
       const best = store.bestVersion();
       console.log(`done. best config: v${best.version} (mean ${best.score.toFixed(1)})`);

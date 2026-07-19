@@ -32,7 +32,9 @@ export ANTHROPIC_API_KEY=sk-ant-...    # needed for evaluate + mutate (and refer
 - `bun run resume --run-id X` — continue an interrupted run from the last completed iteration.
 - `bun run reference [--force] [--concurrency 3]` — (optional, TBD) build cached reference pages for every prompt with a fixed high-effort Opus harness.
 
-Environment overrides: `EVAL_MODEL` (default `claude-opus-4-8`) for the evaluator/mutator model; `PI_BIN` for the builder CLI.
+The outer loop's mutator is itself an agentic Pi session (default model `anthropic/claude-fable-5`): it inspects the iteration's candidate + reference screenshots and the generated HTML, then authors the next genome (skills, subagents, system instructions, tools, thinking level) as a validated `next-config.json`.
+
+Environment overrides: `EVAL_MODEL` (default `claude-opus-4-8`) for the vision evaluator; `MUTATOR_MODEL` (default `anthropic/claude-fable-5`) for the agentic outer-loop mutator; `PI_BIN` for the builder/mutator CLI. `--model <name>` pins the builder model for a run (allowlist: `anthropic/claude-sonnet-4-6`, `anthropic/claude-haiku-4-5`, `anthropic/claude-opus-4-8`); `--limit N` restricts to the first N train prompts.
 
 ## Tests
 

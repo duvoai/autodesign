@@ -1,14 +1,38 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { BASELINE_CONFIG, HarnessConfigSchema } from "./config/schema";
 import { resolveHarness } from "./config/resolver";
-import { runPromptPipeline } from "./inner/pipeline";
+import { runPromptPipeline, referenceSegments } from "./inner/pipeline";
 import { aggregate } from "./outer/aggregate";
-import { mutateConfig } from "./outer/mutate";
+import { mutateConfig, type MutationArtifact } from "./outer/mutate";
 import { pLimit } from "./util/concurrency";
 import type { LlmClient } from "./llm";
 import type { PromptSpec } from "./prompts";
 import type { RunStore, IterationSummary } from "./store/run-store";
+
+// Collect the artifact paths the agentic mutator inspects for one iteration.
+function collectArtifacts(store: RunStore, iter: number, referenceDir: string, summary: IterationSummary): MutationArtifact[] {
+  return summary.outcomes.map((o) => {
+    const promptDir = store.promptDir(iter, o.prompt_id);
+    const candidateScreens = existsSync(promptDir)
+      ? readdirSync(promptDir)
+          .filter((f) => /^candidate\.desktop\.\d+\.png$/.test(f))
+          .sort((a, b) => Number(a.match(/\d+/)![0]) - Number(b.match(/\d+/)![0]))
+          .map((f) => join(promptDir, f))
+      : [];
+    const htmlPath = join(promptDir, "workspace", "output.html");
+    return {
+      promptId: o.prompt_id,
+      overall: o.overall,
+      status: o.status,
+      critique: o.eval?.critique,
+      vsReference: o.eval?.vs_reference,
+      htmlPath: existsSync(htmlPath) ? htmlPath : undefined,
+      candidateScreens,
+      referenceScreens: referenceSegments(referenceDir, o.prompt_id),
+    };
+  });
+}
 
 export async function runLoop(opts: {
   store: RunStore;
@@ -20,8 +44,9 @@ export async function runLoop(opts: {
   referenceDir: string;
   startIteration?: number;
   builderModel?: string;
+  mutatorModel: string;
 }): Promise<void> {
-  const { store, prompts, client, evalModel, referenceDir, concurrency, builderModel } = opts;
+  const { store, prompts, client, evalModel, referenceDir, concurrency, builderModel, mutatorModel } = opts;
   if (prompts.some((p) => p.split !== "train")) throw new Error("runLoop accepts train prompts only");
 
   // Optionally pin the builder model for the whole run (an experiment parameter, not something the
@@ -86,10 +111,11 @@ export async function runLoop(opts: {
       return { version: v, rationale: c.rationale, mean_overall: scored ? scored.mean_overall : null };
     });
 
-    console.log(`[iter ${iter}] mean ${summary.mean_overall.toFixed(1)} (best v${best.version}=${best.score.toFixed(1)}) — mutating…`);
+    console.log(`[iter ${iter}] mean ${summary.mean_overall.toFixed(1)} (best v${best.version}=${best.score.toFixed(1)}) — mutating (Pi ${mutatorModel})…`);
     const next = await mutateConfig({
-      client, model: evalModel, bestConfig, latestSummary: summary,
+      mutatorModel, bestConfig, latestSummary: summary,
       history: historyEntries, pastRationales, nextVersion: store.nextConfigVersion(),
+      workDir: iterDir, artifacts: collectArtifacts(store, iter, referenceDir, summary),
     });
     store.saveConfig(pinModel(next));
     summary.mutator_rationale = next.rationale;
