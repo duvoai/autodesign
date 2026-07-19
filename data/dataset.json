@@ -1,0 +1,406 @@
+{
+  "version": 1,
+  "generated_at": "2026-07-19T00:02:20.704Z",
+  "samples": [
+    {
+      "id": "relay",
+      "instructions": "Landing page for 'Relay', a payroll platform for hiring contractors in 90+ countries. Audience: heads of finance at startups. Must include: hero with headline and primary CTA, a three-step how-it-works section, a country coverage grid, pricing with two tiers, a compliance trust strip, and a final CTA band.",
+      "design_system": "# Design system: \"Basel\" — Swiss international minimal\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: pure white #FFFFFF. No alternate section tints; separate sections with rules, not color.\n- Ink: near-black #111111. Secondary text: #5A5A5A.\n- Accent: signal red #E10600, used only for the primary CTA, key numbers, and hover underlines.\n- Rules and borders: 1px solid #111111 (full-strength black, not gray).\n- Never: gradients, shadows, pastels, more than these three colors.\n\n## Typography\n- Everything in one neo-grotesque sans stack: Helvetica, 'Helvetica Neue', Arial, system-ui, sans-serif.\n- Headings: weight 700, tight leading (1.02), letter-spacing -0.02em. Hero h1 72-96px, oversized and left-aligned.\n- Body 16px, line-height 1.5. Small labels 12px uppercase, letter-spacing 0.1em.\n- Sentence case for headings; uppercase reserved for labels and the nav.\n\n## Layout and spacing\n- Exposed 12-column grid, max-width 1200px, 32px gutters. Asymmetric layouts encouraged: text in columns 1-5, supporting figures in 7-12.\n- Section padding 112px vertical. Horizontal 1px black rules span the full grid between sections.\n- Flush-left, ragged-right text. No centered sections.\n\n## Components\n- Buttons: sharp rectangles (0 radius), 14px 28px padding. Primary: red background, white text. Secondary: 1px black border, transparent.\n- Cards: no boxes — use the grid and rules instead. Where a card is unavoidable: 1px black border, 0 radius, 24px padding, no shadow.\n- Tables and stat blocks: numerals oversized (48px+), labels small uppercase underneath.\n- Nav: wordmark left, links right, 1px black bottom rule.\n- Footer: white with a heavy 4px black top rule.\n\n## Tone\nObjective, engineered, confident. The page should feel like a well-set poster: type and grid do all the work. Never decorative.",
+      "html_path": "generated/relay.html",
+      "png_path": "generated/relay.png",
+      "request_sha256": "6e822734e83e1a15",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:44:25.166Z",
+      "generation": {
+        "duration_s": 112.6,
+        "usage": {
+          "input_tokens": 1068,
+          "output_tokens": 8887
+        }
+      }
+    },
+    {
+      "id": "voidrunner",
+      "instructions": "Landing page for 'Voidrunner', a retro arcade roguelite launching on Steam. Moody but playful. Must include: hero with key art placeholder and wishlist CTA, a gameplay features section, a screenshots strip, a short lore teaser, and a system requirements table.",
+      "design_system": "# Design system: \"CRT\" — phosphor arcade terminal\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: near-black #0A0A0F. Panel background: #111119.\n- Primary text: phosphor green #33FF66. Secondary text: dim green #1E9C4A.\n- Accents: magenta #FF3DA6 (CTAs, highlights) and cyan #29D9FF (links, secondary glow).\n- Borders: 2px solid #33FF66; important frames use double borders.\n- Scanlines: overlay sections with a subtle repeating-linear-gradient (2px dark lines at low opacity).\n- Never: white backgrounds, pastels, soft gray text.\n\n## Typography\n- Everything monospace: ui-monospace, 'SF Mono', Menlo, Consolas, monospace.\n- Headings: uppercase, letter-spacing 0.06em, weight 700. Hero h1 48-64px with a text-shadow glow in the same hue (0 0 12px, low opacity).\n- Body 15-16px, line-height 1.7. Prefix section labels with terminal markers like \"> \" or \"[ ]\".\n- Blinking cursor motif (CSS animation) allowed once, in the hero.\n\n## Layout and spacing\n- Max-width 1080px, centered. Section padding 80px vertical.\n- Sections framed like terminal windows: bordered boxes with a title bar row.\n- Dense is fine; this system tolerates more per viewport than most.\n\n## Components\n- Buttons: rectangular, 2px solid magenta border, transparent background, magenta text; on hover invert (magenta background, black text). Bracket the label: [ WISHLIST NOW ].\n- Cards: bordered green boxes with 8-bit corner ticks; no radius, no soft shadow — use hard 4px offset shadows in dim green.\n- Imagery placeholders: pixel-grid patterns or ASCII-art blocks built from CSS/inline SVG.\n- Tables: green hairline grid, header row inverted (green background, black text).\n- Nav: terminal status bar — wordmark as a prompt (user@voidrunner:~$), links as commands.\n\n## Tone\nRetro-futurist, arcade-cabinet cool. Winks at the player without breaking the fiction. Every element should feel like it renders on a curved glass tube.",
+      "html_path": "generated/voidrunner.html",
+      "png_path": "generated/voidrunner.png",
+      "request_sha256": "3bc9ff18949ae5b2",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:44:57.076Z",
+      "generation": {
+        "duration_s": 144.5,
+        "usage": {
+          "input_tokens": 1080,
+          "output_tokens": 11387
+        }
+      }
+    },
+    {
+      "id": "sobremesa",
+      "instructions": "I need a landing page for 'Sobremesa', a modern Spanish tapas restaurant in Chicago. It should have a hero with warm ambiance imagery placeholder, a menu highlights section organized by small plates and large plates, a short chef story, hours and location with a map placeholder, and a reservation CTA.",
+      "design_system": "# Design system: \"Mediterraneo\" — sun-warmed taverna\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: warm cream #FBF3E4. Alternate band: sun-washed #F3E5CB.\n- Ink: espresso #2B2620. Secondary: #7A6A55.\n- Accents: clay terracotta #C2532B (CTAs, prices) and olive #6B7436 (labels, secondary highlights).\n- Dark band (footer only): espresso #2B2620 with cream text.\n- Borders: 1px solid #E3D3B4.\n\n## Typography\n- Headings: serif — Georgia, 'Times New Roman', serif; weight 400, line-height 1.15. Hero h1 56-68px. Italic serif for dish names and pull quotes.\n- Body: system-ui, -apple-system, 'Segoe UI', sans-serif, 16-17px, line-height 1.65.\n- Eyebrow labels: 13px uppercase olive, letter-spacing 0.12em.\n\n## Layout and spacing\n- Max-width 1080px, 24px padding, section padding 96px.\n- Menu sections set in two columns with dotted leader lines between dish and price.\n- Imagery framed in arches: border-radius 999px 999px 0 0 on tall placeholder blocks.\n\n## Components\n- Buttons: soft rectangles (8px radius), terracotta background, cream text; hover deepens to #A8431F.\n- Cards: cream #FFF9EC, 1px #E3D3B4 border, 12px radius, minimal shadow.\n- Dividers: short centered flourishes — a 48px wavy line in olive (inline SVG).\n- Placeholder imagery: warm gradient blends of terracotta, olive, and ochre #D9A441.\n- Nav: transparent on cream, wordmark in serif italic, links right.\n\n## Tone\nConvivial, familial, unhurried — a long lunch that turns into evening. Rustic warmth with contemporary restraint; never a corporate template.",
+      "html_path": "generated/sobremesa.html",
+      "png_path": "generated/sobremesa.png",
+      "request_sha256": "1d9ca8be3227e03c",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:50:34.741Z",
+      "generation": {
+        "duration_s": 137.2,
+        "usage": {
+          "input_tokens": 1039,
+          "output_tokens": 11386
+        }
+      }
+    },
+    {
+      "id": "meridian-co",
+      "instructions": "Design a landing page for 'Meridian & Co', a heritage Swiss watchmaker founded in 1887. Must include: a hero with a single hero product shot placeholder, a heritage timeline with four milestones, three collection pieces with prices, a craftsmanship section, and a CTA to book a private boutique appointment.",
+      "design_system": "# Design system: \"Maison\" — art-deco noir luxury\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: near-black #0E0D0B throughout. Slightly lifted panel: #171511.\n- Text: warm ivory #F5EFE3. Secondary: #A79B84.\n- Accent: champagne gold #C9A96A — hairlines, numerals, one word per heading at most. Hover: brighter gold #E0C285.\n- Borders: 1px solid #3A352B; ceremonial frames use 1px gold.\n- Never: bright colors, gradients, white backgrounds, more than one accent.\n\n## Typography\n- Headings: high-contrast serif — 'Didot', 'Bodoni MT', Georgia, serif; weight 400, generous size, line-height 1.05. Hero h1 64-80px.\n- Eyebrows: 11px uppercase gold, letter-spacing 0.35em — wide and ceremonial.\n- Body: system-ui, -apple-system, 'Segoe UI', sans-serif, 15px, line-height 1.8, ivory at 90% opacity.\n- Numerals (years, prices): serif, gold, oversized.\n\n## Layout and spacing\n- Max-width 1160px. Vast whitespace: section padding 140px vertical.\n- Strict symmetry: centered headings, centered content. This system is formal.\n- Deco geometry: thin gold rules with a small centered diamond glyph divide sections.\n\n## Components\n- Buttons: sharp rectangles, 1px gold border, transparent, gold uppercase letterspaced text; hover fills gold with black text. One button per viewport.\n- Cards: panel background #171511, 1px #3A352B border, 0 radius, 48px padding.\n- Timeline: a vertical gold hairline with diamond markers; years in oversized serif.\n- Placeholder imagery: radial charcoal-to-black gradients suggesting a spotlight on velvet.\n- Nav: sparse — wordmark centered or left, two links, hairline bottom rule.\n\n## Tone\nHushed, exact, unhurried. Copy is spare and declarative; no exclamation, no discount language. Luxury communicated through restraint and space.",
+      "html_path": "generated/meridian-co.html",
+      "png_path": "generated/meridian-co.png",
+      "request_sha256": "ddce15827494ee69",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:50:44.080Z",
+      "generation": {
+        "duration_s": 146.5,
+        "usage": {
+          "input_tokens": 1056,
+          "output_tokens": 12011
+        }
+      }
+    },
+    {
+      "id": "rewild",
+      "instructions": "Homepage for 'Rewild', a nonprofit restoring degraded farmland into native forest and meadow. Must include: an emotional hero, impact stat counters (acres restored, native species returned, volunteers), a three-step explanation of the restoration method, one featured project story, a donation CTA with three suggested amounts, and a newsletter signup.",
+      "design_system": "# Design system: \"Understory\" — organic earthen warmth\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: warm linen #F4F1E8. Alternate band: pale moss #E9EBDD.\n- Ink: deep forest #1E3D2B. Secondary: #6B6F5C.\n- Accents: moss #5C7C4C (labels, links), sun ochre #D9A441 (donate CTA only), soil #7A5C3E (supporting).\n- Dark band (one, for impact stats): forest #1E3D2B with linen text.\n- Borders: 1px solid #DDD8C6.\n\n## Typography\n- Headings: humanist serif — Georgia, 'Times New Roman', serif; weight 500, line-height 1.2. Hero h1 52-64px.\n- Body: system-ui, -apple-system, 'Segoe UI', sans-serif, 17px, line-height 1.7.\n- Stats: serif numerals 56-72px in ochre on the dark band.\n- Eyebrows: 13px uppercase moss, letter-spacing 0.1em.\n\n## Layout and spacing\n- Max-width 1120px, section padding 100px. Asymmetric organic rhythm: alternate image-left / image-right.\n- Section edges: soft curved dividers (large border-radius on band tops, 48px+), never hard horizontal cuts.\n\n## Components\n- Buttons: rounded 12px, ochre background with forest text for donate; outlined forest for everything else.\n- Cards: linen #FBF9F1, 1px border, 16px radius, 32px padding, shadow at most 0 1px 3px rgba(0,0,0,0.05).\n- Impact counters: number + small caps label, divided by thin soil-colored rules.\n- Placeholder imagery: layered gradient blends of moss, soil, and ochre; leaf silhouettes as inline SVG.\n- Nav: transparent on linen, moss link underlines on hover.\n\n## Tone\nGrounded, hopeful, evidence-first. Warm but never saccharine; the land does the talking, numbers back it up.",
+      "html_path": "generated/rewild.html",
+      "png_path": "generated/rewild.png",
+      "request_sha256": "81a6d96a21e49ab9",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:50:50.740Z",
+      "generation": {
+        "duration_s": 153.2,
+        "usage": {
+          "input_tokens": 1066,
+          "output_tokens": 12629
+        }
+      }
+    },
+    {
+      "id": "doodlewhale",
+      "instructions": "Build a landing page for 'Doodlewhale', a drawing app for kids aged 4 to 8. Big, bright, and friendly. Must include: hero with a playful mascot placeholder, three feature blurbs written for kids, a separate section for parents covering safety and no-ads promises, testimonials from two parents, and app store download CTAs.",
+      "design_system": "# Design system: \"Crayon\" — big rounded playtime\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: soft paper #FFF9EC. Alternate bands rotate: sky tint #E3F2FF, mint tint #E4F8EC.\n- Ink: friendly charcoal #3A3A3A (never pure black).\n- Core crayon palette: blue #2E7CF6, sunshine #FFC93C, bubblegum #FF6FA5, grass #4CC26B. Rotate accents per section; CTAs always bubblegum.\n- Borders: chunky 3px solid in the ink color.\n\n## Typography\n- Everything in a rounded sans stack: ui-rounded, 'SF Pro Rounded', 'Comic Sans MS', system-ui, sans-serif.\n- Headings: weight 800, line-height 1.1. Hero h1 56-72px, one keyword highlighted with a hand-drawn underline squiggle (inline SVG).\n- Body 18px minimum, line-height 1.6 — parents read aloud, kids read along.\n- Sentence case everywhere; exclamation points welcome, all-caps never.\n\n## Layout and spacing\n- Max-width 1040px, centered, section padding 88px.\n- Nothing sits flat: cards and images get a gentle rotation (-2deg to 2deg).\n- Blob shapes: decorate section corners with large soft blobs (irregular border-radius like 60% 40% 55% 45%).\n\n## Components\n- Buttons: fat pills (999px radius), 18px 36px padding, weight 800, bubblegum background, white text, hard offset shadow 4px 4px 0 in ink.\n- Cards: white, 3px ink border, 24px radius, hard offset shadow 6px 6px 0 in the section accent.\n- Feature icons: chunky inline SVG doodles, 64px, stroked 3px in ink and filled with a crayon color.\n- The parents section switches to a calmer look: white band, smaller type, blue accent only.\n- Nav: wordmark with a whale doodle, one pill CTA right.\n\n## Tone\nGleeful, encouraging, safe. Sounds like a kind kindergarten teacher: short sentences, concrete words. The parents section drops the play and earns trust plainly.",
+      "html_path": "generated/doodlewhale.html",
+      "png_path": "generated/doodlewhale.png",
+      "request_sha256": "bc85696468fbf10b",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:50:50.892Z",
+      "generation": {
+        "duration_s": 153.3,
+        "usage": {
+          "input_tokens": 1093,
+          "output_tokens": 12252
+        }
+      }
+    },
+    {
+      "id": "hexpatch",
+      "instructions": "Marketing page for 'Hexpatch', a CLI tool that makes database schema migrations safe with automatic rollback plans. Developer audience. Must include: hero with a terminal demo placeholder, an install command block, three feature highlights, a before/after comparison against hand-written migrations, and links to docs and GitHub.",
+      "design_system": "# Design system: \"Slate console\" — dark developer docs\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: dark slate #0F172A. Panels: #1E293B.\n- Text: #E2E8F0. Secondary: #94A3B8.\n- Accent: cyan #22D3EE (CTAs, links, command highlights). Warning accent: amber #F59E0B, sparingly.\n- Success/diff green #34D399 and removal red #F87171 exist only inside code and diff blocks.\n- Borders: 1px solid #334155.\n- Never: pure black, blue-purple gradients, glassmorphism.\n\n## Typography\n- Headings: monospace — ui-monospace, 'SF Mono', Menlo, Consolas, monospace; weight 600. Hero h1 44-56px (mono runs wide; keep sizes moderate).\n- Body: system-ui, -apple-system, 'Segoe UI', sans-serif, 16px, line-height 1.7.\n- Code: same mono stack, 14-15px, on #0B1120 blocks.\n\n## Layout and spacing\n- Max-width 1120px, section padding 88px. Content leans left; right column holds terminal panels.\n- Terminal-first: the hero demo panel is the largest element on the page, larger than the headline.\n\n## Components\n- Buttons: 8px radius, 12px 24px. Primary: cyan background, slate-900 text. Secondary: 1px #334155 border, transparent.\n- Terminal panels: #0B1120 background, 12px radius, title bar with three dots, mono content; a copy button on command blocks.\n- Cards: panel background, 1px border, 12px radius, 28px padding, no shadow.\n- Comparison: two-column diff-style panel — left tinted with removal red at 8% opacity, right with diff green at 8%.\n- Nav: slate with 1px bottom border; GitHub link gets a star-count pill.\n\n## Tone\nPrecise, dry, zero marketing fluff. Write like a good README: claims are concrete, every promise demonstrated in the terminal.",
+      "html_path": "generated/hexpatch.html",
+      "png_path": "generated/hexpatch.png",
+      "request_sha256": "470b968e22ceb333",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:52:10.609Z",
+      "generation": {
+        "duration_s": 95.9,
+        "usage": {
+          "input_tokens": 1058,
+          "output_tokens": 8326
+        }
+      }
+    },
+    {
+      "id": "stillpoint",
+      "instructions": "One-pager for 'Stillpoint', a small yoga and breathwork studio. Quiet and spacious. Must include: hero with a calming abstract visual, the weekly class schedule as a simple table, three practice styles explained briefly, a short introduction of the two founding instructors, and a first-class-free CTA.",
+      "design_system": "# Design system: \"Exhale\" — airy pastel stillness\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: mist #F6F4F9. Alternate band: warm fog #F1EDE7.\n- Ink: soft charcoal #3A3633. Secondary: stone #8B8680.\n- Accents: sage #A8BCA1 and lavender #C3B5E3 — tints and thin outlines only, never loud fills.\n- Borders: 1px solid #E5E0D8.\n- Never: saturated colors, dark bands, hard black.\n\n## Typography\n- Headings: light serif — Georgia, 'Times New Roman', serif; weight 400, line-height 1.3, generous letter-spacing 0.01em. Hero h1 44-56px — deliberately modest.\n- Body: system-ui, -apple-system, 'Segoe UI', sans-serif, 17px, line-height 1.9.\n- Eyebrows: 12px lowercase italic serif in stone — soft, not shouty.\n\n## Layout and spacing\n- Max-width 960px — narrower than usual. Section padding 128px vertical: emptiness is the aesthetic.\n- One idea per viewport. Centered, symmetric, slow.\n- Circle motif: imagery and decorative elements are perfect circles or soft ellipses.\n\n## Components\n- Buttons: ghost pills — 999px radius, 1px charcoal border, transparent, charcoal text; hover fills sage at 20% opacity. No solid buttons anywhere.\n- Cards: none if possible; prefer open space with thin rules. If needed: white at 60% opacity, 20px radius, no border, no shadow.\n- Schedule table: hairline rows, serif class names, stone-colored times; no zebra striping.\n- Placeholder imagery: large soft radial gradients (sage into lavender into mist), like light through frosted glass.\n- Nav: nearly invisible — small wordmark, two links, no border.\n\n## Tone\nQuiet, spacious, kind. Short sentences with room around them. The page should lower the reader's pulse; nothing urges or sells hard.",
+      "html_path": "generated/stillpoint.html",
+      "png_path": "generated/stillpoint.png",
+      "request_sha256": "41ca84f02a188d9b",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:52:24.086Z",
+      "generation": {
+        "duration_s": 100,
+        "usage": {
+          "input_tokens": 1042,
+          "output_tokens": 8388
+        }
+      }
+    },
+    {
+      "id": "the-ledger-review",
+      "instructions": "Subscription page for 'The Ledger Review', a daily finance briefing read by 80,000 subscribers. Must include: a masthead-style hero with an email capture, a sample of a recent briefing, three coverage areas, two subscription tiers (free and premium), and a short section on the editorial team.",
+      "design_system": "# Design system: \"Broadsheet\" — newspaper print\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: paper #FAF8F2. No alternate tints — use rules to divide.\n- Ink: #191919. Secondary: #5C5C57.\n- Accent: oxblood #8C1D18 — links, the premium tier, small caps section labels. Nothing else is colored.\n- Rules: 1px solid #191919; the masthead sits between a 3px double rule above and 1px below.\n- Never: rounded corners, shadows, colored backgrounds, sans-serif headlines.\n\n## Typography\n- Headlines: serif — Georgia, 'Times New Roman', serif; weight 700, line-height 1.1, tight. Masthead wordmark 64-80px; article heads 28-36px.\n- Body: same serif at 17px, line-height 1.65 — this system is serif throughout.\n- Bylines and datelines: 13px small caps, letter-spacing 0.08em, secondary color.\n- Drop cap on the first paragraph of the sample briefing: 3-line serif initial.\n\n## Layout and spacing\n- Max-width 1120px. Multi-column: the briefing sample runs in two text columns with a 1px vertical rule between (column-rule).\n- Section padding 72px — denser than a marketing page; this is an editorial page.\n- Everything hangs from a strict baseline: no rotation, no overlap, no decoration.\n\n## Components\n- Buttons: rectangular, ink background with paper text; premium CTA in oxblood. 0 radius, 12px 28px padding.\n- Email capture: single underlined input (border-bottom 1px ink only) with an ink button — like a classified coupon.\n- Tier table: side-by-side columns divided by a 1px rule; premium column header in oxblood small caps.\n- Pull quotes: 24px serif italic with oxblood left rule.\n- Nav: a thin dateline bar above the masthead — edition date left, links right, 11px small caps.\n\n## Tone\nAuthoritative, terse, wry. Financial-press cadence: short declarative sentences, numbers over adjectives, headlines that inform rather than tease.",
+      "html_path": "generated/the-ledger-review.html",
+      "png_path": "generated/the-ledger-review.png",
+      "request_sha256": "6f1e10c3885be8b4",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:52:25.341Z",
+      "generation": {
+        "duration_s": 94.4,
+        "usage": {
+          "input_tokens": 1069,
+          "output_tokens": 7800
+        }
+      }
+    },
+    {
+      "id": "kepler-dynamics",
+      "instructions": "Landing page for 'Kepler Dynamics', which builds electric propulsion thrusters for small satellites. Audience: aerospace program managers. Must include: hero with product render placeholder, a technical specifications table, a flight heritage timeline, a partner logo strip, and a contact-sales CTA. Keep marketing language minimal; data first.",
+      "design_system": "# Design system: \"Blueprint\" — aerospace technical\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: deep space navy #0B1B33. Panel: #102642.\n- Blueprint grid: cover section backgrounds with a faint 24px grid of #16325C lines.\n- Text: #EAF2FF. Secondary: #8FA5C4.\n- Accent: signal orange #FF7A29 — CTAs, plotted data points, key spec values.\n- Borders: 1px solid #1E3A5F.\n- Never: gradients, rounded-friendly shapes, playful color.\n\n## Typography\n- Headings: condensed sans — 'Avenir Next Condensed', 'Arial Narrow', system-ui, sans-serif; weight 600, uppercase, letter-spacing 0.04em. Hero h1 48-60px.\n- Body: system-ui, -apple-system, 'Segoe UI', sans-serif, 16px, line-height 1.6.\n- All figures, part numbers, and spec values in mono: ui-monospace, Menlo, monospace, orange for key values.\n- Annotation labels: 11px mono uppercase with leader lines, like a technical drawing callout.\n\n## Layout and spacing\n- Max-width 1200px, section padding 96px.\n- Angular: cards and buttons get one clipped corner (clip-path, 12px notch) instead of border-radius.\n- Crosshair/reticle marks (thin + glyphs) decorate section corners.\n\n## Components\n- Buttons: clipped-corner rectangles, orange background with navy text for primary; 1px #8FA5C4 border transparent for secondary. Uppercase mono labels.\n- Spec table: the centerpiece — mono values, hairline #1E3A5F grid, orange highlights on headline figures; caption row citing test conditions.\n- Timeline: horizontal rail with mission markers, mono dates, orange node for the most recent flight.\n- Cards: panel background, 1px border, clipped corner, 28px padding.\n- Placeholder imagery: wireframe-style inline SVG line drawings in #4A6B96 on the grid background.\n\n## Tone\nEngineering confidence. Declarative sentences, SI units, no superlatives without a number attached. The page should read like a datasheet that happens to be beautiful.",
+      "html_path": "generated/kepler-dynamics.html",
+      "png_path": "generated/kepler-dynamics.png",
+      "request_sha256": "7fbacb5248073137",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:53:23.813Z",
+      "generation": {
+        "duration_s": 153.1,
+        "usage": {
+          "input_tokens": 1078,
+          "output_tokens": 11231
+        }
+      }
+    },
+    {
+      "id": "curbside",
+      "instructions": "Make a one-page site for 'Curbside', an independent skateboard deck brand run out of a garage in Portland. Loud and raw. Must include: hero, a lineup of four deck designs with prices, a team riders section, an upcoming drop calendar, and a shop CTA. It should feel like a zine, not a store.",
+      "design_system": "# Design system: \"Xerox\" — brutalist zine\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: raw newsprint #F2F2F0. Some sections invert to full black #0D0D0D with newsprint text.\n- Ink: #0D0D0D. No gentle secondary gray — secondary text is just smaller ink.\n- Accent: caution yellow #F5D90A — highlighter strips behind key words, price tags, the shop CTA.\n- Borders: brutal 4px solid ink.\n- Never: gradients, pastels, tasteful minimalism, soft anything.\n\n## Typography\n- Headings: condensed and enormous — 'Arial Narrow', 'Avenir Next Condensed', Impact, system-ui, sans-serif; weight 900, uppercase, line-height 0.9, letter-spacing -0.01em. Hero h1 96-140px, allowed to overflow and clip.\n- Body: ui-monospace, Menlo, monospace, 15px, line-height 1.5 — typewriter paragraphs.\n- Highlight treatment: yellow background strip on key phrases, slightly rotated.\n\n## Layout and spacing\n- Max-width 1240px but intentionally uneven: elements rotate (-3deg to 3deg), overlap, and break the grid.\n- Section padding varies 48-96px — inconsistency is the system.\n- Marquee strips: full-width repeating uppercase text bands (deck names, drop dates) between sections, alternating ink-on-yellow and newsprint-on-ink.\n\n## Components\n- Buttons: 4px ink border, 0 radius, uppercase condensed labels, hard shadow 6px 6px 0 ink; primary fills yellow.\n- Deck cards: tall rectangles with 4px borders, taped-on labels (small rotated ink tabs), mono price stickers in yellow.\n- Rider profiles: photocopy-style duotone placeholder blocks (ink on newsprint) with stapled-note captions.\n- Calendar: a plain mono table with 4px outer border; sold-out rows struck through.\n- Nav: a strip of ink with newsprint uppercase links; the cart link circled by a rough hand-drawn ellipse (inline SVG).\n\n## Tone\nLoud, irreverent, anti-corporate. Copy is short, all attitude — like it was typed fast and photocopied at midnight. Perfection is off-brand; slight misalignment is correct.",
+      "html_path": "generated/curbside.html",
+      "png_path": "generated/curbside.png",
+      "request_sha256": "5b5ca7fc781988d5",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:54:45.451Z",
+      "generation": {
+        "duration_s": 154.8,
+        "usage": {
+          "input_tokens": 1104,
+          "output_tokens": 13260
+        }
+      }
+    },
+    {
+      "id": "parseform",
+      "instructions": "Create a landing page for 'Parseform', an API that turns messy documents (invoices, receipts, contracts) into structured JSON. Developer-and-founder audience. Must include: hero with a live request/response code example, an accuracy stats row, three integration logos placeholders, usage-based pricing with a calculator teaser, and a start-free CTA.",
+      "design_system": "# Design system: \"Prism\" — vivid gradient SaaS\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: white #FFFFFF. Alternate section: cool tint #F5F7FF.\n- Ink: #0F1222. Secondary: #5B6178.\n- Signature gradient: electric indigo #5B5BF7 through violet #A855F7 to cyan #22D3EE — used on the primary CTA, hero keyword text (background-clip), stat numerals, and one thin top border per card.\n- Dark panels for code: #0F1222 with syntax accents in the gradient hues.\n- Borders: 1px solid #E4E7F2.\n\n## Typography\n- Headings: system-ui, -apple-system, 'Segoe UI', sans-serif; weight 700, tight -0.02em. Hero h1 60-72px with the key phrase in gradient text.\n- Body: same sans, 17px, line-height 1.65.\n- Code: ui-monospace, 'SF Mono', Menlo, monospace, 14px, in dark panels with indigo/cyan/violet syntax highlights.\n\n## Layout and spacing\n- Max-width 1160px, section padding 104px.\n- Hero is split: headline and CTA left, request/response code panel right, slightly overlapping the section below.\n- Floating accents: two large, very soft gradient orbs (blurred radial gradients at low opacity) behind hero and pricing — decoration, never behind body text.\n\n## Components\n- Buttons: 12px radius, 14px 28px. Primary: the signature gradient with white text and a subtle colored shadow (0 8px 24px rgba(91,91,247,0.25)). Secondary: 1px border, ink text.\n- Cards: white, 1px border, 16px radius, 32px padding, hover lift (0 12px 32px rgba(15,18,34,0.08)); a 3px gradient top border on featured cards.\n- Stats row: gradient numerals 48-64px with plain secondary labels.\n- Code panels: dark, 16px radius, tab bar (request | response), mono content.\n- Nav: white with 1px border, primary CTA as a small gradient pill.\n\n## Tone\nFast, confident, modern. Developer-credible but founder-friendly: every claim paired with a number, every feature shown in code.",
+      "html_path": "generated/parseform.html",
+      "png_path": "generated/parseform.png",
+      "request_sha256": "c331366e8abeeb55",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:54:49.619Z",
+      "generation": {
+        "duration_s": 144.3,
+        "usage": {
+          "input_tokens": 1123,
+          "output_tokens": 12845
+        }
+      }
+    },
+    {
+      "id": "ever-elm",
+      "instructions": "Landing page for 'Ever & Elm', a boutique wedding planning studio. Elegant and calm. Must include: hero, three service packages with starting prices, a gallery of real weddings with six image placeholders, a five-step planning process timeline, and an inquiry CTA with a short form.",
+      "design_system": "# Design system: \"Champagne\" — romantic editorial blush\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: blush #FBF0EC. Alternate band: champagne #F5E9DA.\n- Ink: deep plum #4A3640. Secondary: mauve #9A8089.\n- Accent: dusty rose #C98A7D — CTAs, package names, fine details. Hover: deeper rose #B06E5F.\n- Borders: 1px solid #E9D8CE; ceremonial dividers are 1px with a tiny centered diamond.\n- Never: bright saturated color, dark tech aesthetics, heavy black.\n\n## Typography\n- Headings: refined serif — Georgia, 'Times New Roman', serif; weight 400, line-height 1.2. Hero h1 56-68px with one word in italic.\n- Body: system-ui, -apple-system, 'Segoe UI', sans-serif, 16px, line-height 1.75.\n- Eyebrows: 12px uppercase dusty rose, letter-spacing 0.25em — wide and delicate.\n- Numerals in the process timeline: oversized serif italic.\n\n## Layout and spacing\n- Max-width 1080px, section padding 112px. Centered, symmetric, gracious.\n- Gallery: uneven editorial grid — mixed tall and square frames with generous 24px gaps.\n- Imagery frames: soft arches (border-radius 200px 200px 12px 12px) or ovals; thin 1px inner border inset like a mat.\n\n## Components\n- Buttons: slim pills, 1px plum border, transparent with plum text; primary fills dusty rose with blush text. 10px 28px padding — dainty, not chunky.\n- Package cards: champagne background, 1px border, 4px radius, 40px padding; package name in serif italic, price in small caps.\n- Timeline: vertical hairline with numbered serif markers and short justified descriptions.\n- Form inputs: underline-only (1px plum bottom border), generous 16px text, floating labels in mauve.\n- Placeholder imagery: soft gradient blends of blush, champagne, and rose — like out-of-focus florals.\n\n## Tone\nWarm, assured, quietly celebratory. Speaks to couples like a trusted friend with impeccable taste; never salesy, never twee.",
+      "html_path": "generated/ever-elm.html",
+      "png_path": "generated/ever-elm.png",
+      "request_sha256": "315956737c6d9da7",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:54:53.174Z",
+      "generation": {
+        "duration_s": 149.1,
+        "usage": {
+          "input_tokens": 1084,
+          "output_tokens": 12515
+        }
+      }
+    },
+    {
+      "id": "tidal",
+      "instructions": "Landing page for 'Tidal', a custom surfboard shaper on the Central Coast. Retro and sun-soaked. Must include: hero, three board models with specs (length, volume, best conditions), a section on the custom shaping process, a short shaper bio, and an order CTA. ",
+      "design_system": "# Design system: \"Endless Summer\" — retro 70s coastal\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: sun-bleached cream #FFF6E5. Alternate band: sand #F4E4C6.\n- Ink: deep navy #1D3557. Secondary: faded denim #5B7089.\n- Accents: sunset coral #FF7E5F (CTAs, highlights) and ocean teal #1F8A8C (labels, links). Support: dune #E8C99B.\n- Sunset stripe motif: stacked 8px bands of coral, dune, teal used as section dividers and card top-trims.\n- Borders: 2px solid navy.\n\n## Typography\n- Headings: chunky slab feel — 'Rockwell', 'Courier Bold', Georgia, serif; weight 700, line-height 1.1. Hero h1 60-76px with a slight arc if possible (or gentle per-letter offset), navy with coral shadow offset 3px 3px 0.\n- Body: system-ui, -apple-system, 'Segoe UI', sans-serif, 16-17px, line-height 1.65.\n- Eyebrows: 13px uppercase teal, letter-spacing 0.15em.\n\n## Layout and spacing\n- Max-width 1100px, section padding 96px.\n- Wavy dividers: sections separated by smooth wave curves (inline SVG), not straight lines.\n- Badge/roundel: a circular emblem (inline SVG — wordmark around a wave) floats in the hero and footer.\n\n## Components\n- Buttons: pill radius, 2px navy border, coral fill with cream text; hover deepens coral. Slight -1deg rotation on the primary CTA.\n- Board cards: cream with 2px navy border, 20px radius, sunset-stripe trim on top; specs in a small mono table (ui-monospace, Menlo, monospace).\n- Process steps: numbered circles in teal with hand-level short copy.\n- Placeholder imagery: horizontal gradient sunsets (coral to dune to teal) with a navy horizon line.\n- Nav: cream, navy links, roundel as the mark.\n\n## Tone\nLaid-back, warm, craftsmanlike. First-person voice from the shaper; salt-air nostalgia without kitsch. Sounds like advice from someone who has shaped 3,000 boards.",
+      "html_path": "generated/tidal.html",
+      "png_path": "generated/tidal.png",
+      "request_sha256": "8c5df1e94f782fdb",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:55:46.755Z",
+      "generation": {
+        "duration_s": 142.9,
+        "usage": {
+          "input_tokens": 1098,
+          "output_tokens": 12009
+        }
+      }
+    },
+    {
+      "id": "harcourt-sloane",
+      "instructions": "Landing page for 'Harcourt & Sloane', a boutique law firm advising founders on M&A and venture financings. Understated and credible. Must include: hero, four practice areas, a selected transactions list (six entries with deal sizes), brief partner profiles for three partners, and a contact section. No marketing hype.",
+      "design_system": "# Design system: \"Chambers\" — discreet professional\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: alabaster #F7F6F3. No alternate tint except one navy band.\n- Ink: charcoal #23282D. Secondary: #6E7278.\n- Primary: deep navy #1B2A4A — headings, buttons, the single dark band (selected transactions).\n- Accent: bronze #9C7A3C — hairline details, small caps labels, hover states. Use sparingly; two or three appearances per page.\n- Borders: 1px solid #E1DFD8; formal dividers are double hairlines (1px, 3px gap, 1px).\n\n## Typography\n- Headings: traditional serif — Georgia, 'Times New Roman', serif; weight 500, modest sizes — hero h1 40-48px. Restraint over spectacle.\n- Body: system-ui, -apple-system, 'Segoe UI', sans-serif, 16px, line-height 1.7, comfortable measure (65ch max).\n- Labels: 12px small caps bronze, letter-spacing 0.12em.\n- Transaction amounts: serif, navy on the dark band in alabaster.\n\n## Layout and spacing\n- Max-width 1040px, section padding 88px. Calm single-column rhythm with occasional two-column splits.\n- Strictly rectilinear: 0 radius everywhere, no rotation, no overlap, no decoration beyond rules.\n\n## Components\n- Buttons: rectangles, navy background, alabaster text, 12px 28px; secondary is a bronze-underlined text link, not a button.\n- Practice area items: numbered list (01-04) with serif headings and one-sentence descriptions; thin rules between.\n- Transactions: a formal table on the navy band — parties, year, deal size — alabaster text, bronze rules.\n- Partner profiles: small square portrait placeholders (neutral gradient), name in serif, credentials in one line.\n- Nav: wordmark in serif, three links, 1px bottom rule; no CTA button in the nav.\n\n## Tone\nMeasured, exact, quietly senior. Every sentence would survive a partner review: no superlatives, no exclamation, facts and matters handled. Credibility through omission.",
+      "html_path": "generated/harcourt-sloane.html",
+      "png_path": "generated/harcourt-sloane.png",
+      "request_sha256": "8e9ebdda148c3d69",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:56:08.078Z",
+      "generation": {
+        "duration_s": 82.6,
+        "usage": {
+          "input_tokens": 1082,
+          "output_tokens": 7038
+        }
+      }
+    },
+    {
+      "id": "basswood",
+      "instructions": "Promo page for 'Basswood', a three-day folk and bluegrass festival on a farm outside Nashville, June 12-14. Must include: hero with dates and place, the lineup split into headliners and supporting acts, three ticket tiers, a camping and getting-there info section, and an FAQ with four questions.",
+      "design_system": "# Design system: \"Hootenanny\" — handmade folk poster\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: cream #FBF4E2. Alternate bands: mustard #E3A72F and forest #2F4A32 (light text on forest).\n- Ink: deep brown #3B2E1E.\n- Accents: barn red #A3402F (CTAs, headliner names) and forest #2F4A32.\n- Borders: 2px solid brown; poster frames use a double border with 6px gap.\n- Sunburst motif: radiating thin brown lines (inline SVG) behind the hero title and section badges.\n\n## Typography\n- Display: stacked mixed type like a letterpress poster — alternate lines of heavy slab ('Rockwell', Georgia, serif; weight 700) and condensed uppercase ('Arial Narrow', 'Avenir Next Condensed', sans-serif). Hero builds the festival name + dates as a type-stack poster, 64-96px.\n- Body: Georgia, 'Times New Roman', serif, 16-17px, line-height 1.65.\n- Lineup names: slab, headliners 32-40px in barn red, supporting acts 18px brown in a tidy multi-column list.\n- Labels: 13px uppercase letterpressed feel, letter-spacing 0.18em.\n\n## Layout and spacing\n- Max-width 1080px, section padding 88px.\n- Poster logic: centered type-stacks, badge shapes (scalloped circles, ribbon banners as inline SVG) for section headers.\n- Edges: scalloped or ticket-perforation borders (dashed 2px) on key blocks.\n\n## Components\n- Buttons: rectangles with 4px radius, barn red fill, cream text, 2px brown border and 3px 3px 0 brown shadow.\n- Ticket tiers: three ticket-shaped cards (perforated dashed edge, punched circle notches), tier name in slab, price oversized.\n- Info rows: icon-free — small ribbon labels instead; directions in plain serif with a hand-drawn arrow SVG.\n- FAQ: plain details/summary rows with 2px brown top rules and slab questions.\n- Nav: cream strip, brown links, a small sunburst mark left.\n\n## Tone\nHandmade, warm, communal. Copy sounds like a neighbor who plays banjo: plainspoken, hospitable, a little wry. Machine-perfect polish is off-key; sturdy and friendly is right.",
+      "html_path": "generated/basswood.html",
+      "png_path": "generated/basswood.png",
+      "request_sha256": "60cd7436331615bd",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:57:14.091Z",
+      "generation": {
+        "duration_s": 144.5,
+        "usage": {
+          "input_tokens": 1122,
+          "output_tokens": 11633
+        }
+      }
+    },
+    {
+      "id": "northstar-pediatrics",
+      "instructions": "Landing page for 'Northstar Pediatrics', a modern pediatric clinic with same-week appointments. Reassuring for parents. Must include: hero with a book-appointment CTA, four services (well visits, sick visits, vaccinations, telehealth), a meet-the-doctors section with three providers, an accepted insurance strip, and clinic hours with location.",
+      "design_system": "# Design system: \"Bandage\" — friendly clinical care\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: clean white-blue #FDFEFF. Alternate band: pale sky #EBF4FD.\n- Ink: deep navy #17395C. Secondary: #5D7591.\n- Primary accent: sky blue #58A6E8 (CTAs, links). Support accents: warm coral #F27D72 (highlights, one per section max) and mint #7ED6C0 (checkmarks, positive tags).\n- Borders: 1px solid #DCE8F4.\n- Never: alarm red, dark bands, clinical gray-on-gray.\n\n## Typography\n- Headings: system-ui, -apple-system, 'Segoe UI', sans-serif; weight 700, line-height 1.2. Hero h1 48-60px.\n- Body: same sans, 18px, line-height 1.7 — larger than typical for stressed parents reading fast.\n- Labels: 13px uppercase sky, letter-spacing 0.08em.\n- Accessibility: contrast AA minimum everywhere; never place text on mid-tone blue.\n\n## Layout and spacing\n- Max-width 1120px, section padding 96px, generous and orderly; no rotation, no overlap.\n- Soft geometry: everything rounded 16-20px; decorative quarter-circle shapes in pale sky tuck into section corners.\n\n## Components\n- Buttons: pills, 999px radius, 14px 30px, sky fill with white text; hover deepens to #3E8BD0. Secondary: 1px navy border.\n- Service cards: white, 1px border, 20px radius, 32px padding, pictogram-style inline SVG icon (2.5px stroke, sky with one coral detail), soft shadow 0 2px 8px rgba(23,57,92,0.06).\n- Provider cards: circular portrait placeholders (soft sky gradient), name, credentials line, and a mint \"accepting new patients\" tag where relevant.\n- Insurance strip: pale sky band with grayscale placeholder logos in rounded white chips.\n- Hours/location: a two-column card with a map placeholder (soft gradient with a coral pin SVG).\n\n## Tone\nReassuring, plain, competent. Say it the way a good nurse would: clear steps, no jargon, warmth without baby talk. Parents should feel the clinic has room for them this week.",
+      "html_path": "generated/northstar-pediatrics.html",
+      "png_path": "generated/northstar-pediatrics.png",
+      "request_sha256": "8dead3b3ac0b6311",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:57:24.462Z",
+      "generation": {
+        "duration_s": 151.3,
+        "usage": {
+          "input_tokens": 1114,
+          "output_tokens": 14050
+        }
+      }
+    },
+    {
+      "id": "featherlite",
+      "instructions": "Landing page for 'Featherlite', an open-source UI framework that ships in under 2kb gzipped. Must include: hero with the size claim front and center, an install code snippet, a component list, a benchmark comparison against two heavier frameworks, and a GitHub CTA. The page itself should feel as light as the library.",
+      "design_system": "# Design system: \"Paperweight\" — radical featherweight minimal\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: #FCFCFC. That is the only background — no bands, no tints, no panels.\n- Ink: #222222. Secondary: #8A8A8A.\n- Accent: chartreuse #84CC16 — exactly three uses per page: the size badge, the primary CTA, and benchmark bars. Nowhere else.\n- Borders: hairline 1px #EAEAEA.\n- Never: shadows, gradients, background colors, decorative shapes, images of any kind.\n\n## Typography\n- Headings: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; weight 600, modest sizes — hero h1 36-44px. The restraint is the statement.\n- Body: system-ui, -apple-system, 'Segoe UI', sans-serif, 16px, line-height 1.7, max measure 60ch.\n- Code: same mono, 14px, hairline-bordered blocks on the page background (no dark panels — too heavy).\n- Labels: 12px mono in secondary gray.\n\n## Layout and spacing\n- Max-width 720px, single column, left-aligned — a document, not a brochure.\n- Section padding 64px; separate sections with a single hairline rule.\n- Whitespace and alignment are the only decoration permitted.\n\n## Components\n- Buttons: text-first — mono label with a 1px border, 2px radius, 8px 16px padding; primary gets the chartreuse border and text. No fills.\n- Size badge: a small mono chip next to the h1 — 1px chartreuse border, chartreuse text: 1.9kb gzipped.\n- Component list: a plain two-column mono list with hairline row rules; no cards.\n- Benchmarks: horizontal CSS bars — chartreuse for Featherlite, gray #D9D9D9 for the others — with mono value labels; no chart junk.\n- Nav: wordmark in mono, two text links, hairline bottom rule.\n\n## Tone\nDry, exact, quietly smug. Every byte justified, every sentence load-bearing; the design proves the pitch by refusing all weight.",
+      "html_path": "generated/featherlite.html",
+      "png_path": "generated/featherlite.png",
+      "request_sha256": "122fc37edb8ec6e4",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:57:35.549Z",
+      "generation": {
+        "duration_s": 87.5,
+        "usage": {
+          "input_tokens": 1076,
+          "output_tokens": 6319
+        }
+      }
+    },
+    {
+      "id": "machina",
+      "instructions": "Exhibition page for 'Machina', a special exhibition on 200 years of robots at a science museum, running October through March. Must include: hero, three exhibit zones described, visitor information (hours, prices, accessibility), a school groups section, and a ticket CTA.",
+      "design_system": "# Design system: \"Bauhaus\" — geometric primary boldness\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: gallery white #F5F3EF.\n- Ink: #121212.\n- The three primaries carry the page: red #D93025, blue #1A56C4, yellow #F2B705. Assign one primary per exhibit zone and keep it consistent for that zone everywhere.\n- Rules: 3px solid black — thick and structural.\n- Never: gradients, pastels, more colors than these, decorative curves.\n\n## Typography\n- Headings: geometric sans — 'Futura', 'Century Gothic', system-ui, sans-serif; weight 700, line-height 1.0. Hero h1 80-110px, tight, some words set vertically (writing-mode) for poster energy.\n- Body: system-ui, -apple-system, 'Segoe UI', sans-serif, 16px, line-height 1.6.\n- Labels: 12px uppercase, letter-spacing 0.2em, on small colored tabs.\n- Numbers (dates, prices): oversized geometric, often inside circles.\n\n## Layout and spacing\n- Max-width 1200px, section padding 96px.\n- Hard asymmetric grid: big blocks of color, off-center compositions, deliberate imbalance held by black rules.\n- Pure geometry decorates: circles, half-circles, triangles, and squares in the three primaries — placed structurally, not scattered.\n\n## Components\n- Buttons: rectangles, black fill with white text; hover swaps to the section primary. 0 radius, 14px 32px, uppercase.\n- Zone blocks: each zone is a large color field (its primary) with black display type and one geometric shape; white body text on blue and red, black on yellow.\n- Visitor info: a black-ruled table, icon-free, with circled numerals.\n- Ticket CTA: a huge circle button (160px+) in red with white uppercase text — the most Bauhaus element on the page.\n- Nav: white, black 3px bottom rule, wordmark in geometric caps; a small red square as the mark.\n\n## Tone\nBold, curatorial, exact. Museum-poster confidence: short declarative lines, dates and facts writ large. The page is itself an exhibit of form follows function.",
+      "html_path": "generated/machina.html",
+      "png_path": "generated/machina.png",
+      "request_sha256": "7df58ab7113a7dc6",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:57:41.266Z",
+      "generation": {
+        "duration_s": 114.5,
+        "usage": {
+          "input_tokens": 1078,
+          "output_tokens": 10190
+        }
+      }
+    },
+    {
+      "id": "nomad-rail",
+      "instructions": "App landing page for 'Nomad Rail', an app for planning multi-country European train trips — syncing itineraries, splitting costs, and voting on stops with your group. Must include: hero, three feature highlights, a sample seven-day route teaser (Paris to Vienna), two traveler quotes, and app download CTAs.",
+      "design_system": "# Design system: \"Grand Tour\" — vintage travel poster deco\n\nThe brief decides the content and structure of the page; this system decides how everything looks. Apply it regardless of subject matter.\n\n## Color\n- Page background: aged cream #F4E9D3. Alternate band: deep rail teal #175E63 with cream text.\n- Ink: dark slate-teal #21313A. Secondary: #6E7B76.\n- Accents: coral #E2725B (CTAs, route line highlights) and brass #C8A24B (frames, small details).\n- Borders: 1px solid #DFCFAF; poster frames are double rules in brass.\n- Never: neon, gradients-as-decoration, generic flat corporate blue.\n\n## Typography\n- Headings: deco serif — Georgia, 'Times New Roman', serif; weight 700, letter-spacing 0.05em, some headings uppercase with wide tracking. Hero h1 56-72px.\n- Body: system-ui, -apple-system, 'Segoe UI', sans-serif, 16-17px, line-height 1.65.\n- Eyebrows: 12px uppercase brass, letter-spacing 0.3em.\n- Route names and times: ui-monospace, Menlo, monospace — like a departures board.\n\n## Layout and spacing\n- Max-width 1120px, section padding 100px.\n- Poster framing: the hero sits inside a double brass rule frame with deco corner glyphs (inline SVG).\n- Route motif: a dotted coral line with small circle station nodes threads between sections, connecting hero to route teaser.\n\n## Components\n- Buttons: slightly rounded rectangles (6px), coral fill, cream text, thin brass outer offset border; uppercase letterspaced labels.\n- Feature cards: cream, 1px border, 8px radius, a small deco sunray crest (inline SVG) atop each.\n- Route teaser: a luggage-tag styled panel on the teal band — day-by-day stops as a mono departures list, cities in serif caps, dotted leaders.\n- Quotes: framed like vintage postcards — cream cards, brass stamp corner square, italic serif text, a mono dateline.\n- Nav: cream, slate-teal links, wordmark in deco caps with a small locomotive glyph.\n\n## Tone\nWanderlust with old-world polish. Evokes the golden age of rail — romantic, assured, precise about practicalities (dates, times, costs) the way a good conductor is.",
+      "html_path": "generated/nomad-rail.html",
+      "png_path": "generated/nomad-rail.png",
+      "request_sha256": "77a7ec73dd41d92f",
+      "status": "ok",
+      "cached": false,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "generated_at": "2026-07-18T23:59:51.715Z",
+      "generation": {
+        "duration_s": 157.6,
+        "usage": {
+          "input_tokens": 1095,
+          "output_tokens": 13952
+        }
+      }
+    }
+  ]
+}
