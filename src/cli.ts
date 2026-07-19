@@ -25,10 +25,11 @@ const { values } = parseArgs({
     force: { type: "boolean", default: false },
     limit: { type: "string" },
     model: { type: "string" },
+    prompts: { type: "string" },
   },
 });
 
-const all = loadPrompts();
+const all = loadPrompts(values.prompts);
 const concurrency = Number(values.concurrency);
 const limit = values.limit ? Number(values.limit) : undefined;
 const builderModel = values.model;

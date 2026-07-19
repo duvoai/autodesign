@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "description": "Stylistically demanding landing-page prompts for the autodesign loop. Each brief mandates strong, specific art direction where a generic 'clean modern' page scores poorly, creating headroom for the outer loop to discover skills about typography, color systems, and layout. split=train prompts are optimized against; split=holdout are reserved for final validation.",
+  "prompts": [
+    {
+      "id": "brutalist-agency",
+      "category": "brutalist",
+      "split": "train",
+      "prompt": "Landing page for 'CONCRETE', a contrarian brand design studio. Hard brutalist web aesthetic: monospace or grotesque type, raw black-on-white with one aggressive accent, visible grid lines, oversized headline that breaks the grid, no rounded corners, no soft shadows, deliberate asymmetry. Must include: a screen-filling type-only hero, a numbered list of services (01–04), a raw bordered case-study grid, a marquee of client names, and a stark footer with a giant email link."
+    },
+    {
+      "id": "editorial-magazine",
+      "category": "editorial",
+      "split": "train",
+      "prompt": "Landing page for 'MERIDIAN', an independent culture and design magazine. Editorial print aesthetic: refined serif display type, multi-column article layout, drop caps, generous whitespace, restrained palette with a single ink accent, hairline rules. Must include: a masthead-style hero with issue number and date, a featured-story block with pull quote, a three-column latest-articles grid with kicker/headline/byline, a subscribe block styled like a print subscription card, and a minimal footer."
+    },
+    {
+      "id": "luxury-minimal",
+      "category": "luxury",
+      "split": "train",
+      "prompt": "Landing page for 'AURELIA', a haute horlogerie watch maison. Luxury-minimal aesthetic: enormous negative space, understated high-contrast serif type, near-monochrome palette with warm metallic accent, slow and reverent pacing, product treated like a museum object. Must include: a centered hero with a single product statement and a thin outlined CTA, a craftsmanship section with three restrained feature callouts, a heritage timeline, a discreet concierge/enquire block, and a whisper-quiet footer. No loud colors, no busy layouts."
+    },
+    {
+      "id": "cinematic-dark",
+      "category": "cinematic",
+      "split": "train",
+      "prompt": "Landing page for 'NOCTURNE', a moody narrative video game. Cinematic dark aesthetic: near-black background, dramatic contrast, atmospheric gradient glow, condensed display type, letter-spaced labels, a sense of depth and mood. Must include: a full-bleed hero with a trailer placeholder and a single glowing CTA, a screenshot gallery treated cinematically, a three-beat story/features section, a wishlist-on-Steam CTA band, and press pull-quotes. Restrained, tense, premium — not a generic dark-mode SaaS page."
+    },
+    {
+      "id": "retro-maximalist",
+      "category": "maximalist",
+      "split": "train",
+      "prompt": "Landing page for 'SUPERBLOOM', a summer music festival. Retro-maximalist aesthetic: saturated clashing color blocks, chunky retro display type, stickers/badges, visible texture, playful overlap and rotation, high energy. Must include: a loud hero with dates and location and a ticket CTA, a poster-style lineup grid of artist names at varied scales, a day-by-day schedule, ticket tiers as bold cards, and a sponsor strip. Maximal and joyful — the opposite of minimalist."
+    },
+    {
+      "id": "playful-illustrated",
+      "category": "playful",
+      "split": "train",
+      "prompt": "Landing page for 'Sprout', a friendly kids' learning app. Playful illustrated aesthetic: rounded soft shapes, warm cheerful palette, hand-drawn illustration placeholders, bouncy chunky type, generous rounded cards, a sense of fun. Must include: a hero with a mascot illustration placeholder and a 'Get the app' CTA, a three-step 'How it works' with illustrated icons, an age-range selector, parent-trust reassurance, app store badges, and a colorful footer. Warm and whimsical, never corporate."
+    },
+    {
+      "id": "holdout-swiss-fintech",
+      "category": "swiss",
+      "split": "holdout",
+      "prompt": "Landing page for 'LEDGER NORTH', a private banking platform. Swiss/International Typographic Style: strict grid, Helvetica-style neutral sans, flush-left rag-right text, mathematical spacing, black/white with a single primary accent, absolute restraint and order. Must include: a grid-locked hero, a precise three-column capabilities section, a data-backed trust section with aligned figures, a compliance/credentials row, and a spare footer. Order and precision over decoration."
+    },
+    {
+      "id": "holdout-organic-wellness",
+      "category": "organic",
+      "split": "holdout",
+      "prompt": "Landing page for 'TERRA', a botanical skincare brand. Organic/earthy aesthetic: warm natural palette (clay, sage, cream), elegant serif paired with humanist sans, soft grain texture, botanical imagery placeholders, calm generous spacing. Must include: a serene hero with product statement and shop CTA, an ingredients/sourcing section with three natural callouts, a ritual/how-to-use section, real-sounding testimonial cards, and a newsletter capture. Warm, natural, premium — not clinical."
+    }
+  ]
+}
