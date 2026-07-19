@@ -7,15 +7,18 @@ import { judgePair } from "./judge.js";
 import { claudeCall, lastJson } from "./claude.js";
 
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
-const GENOME_CURRENT = path.join(ROOT, "genome", "current");
-const RUNS = path.join(ROOT, "runs");
+
+/** Experiment namespace: override via env to run parallel experiments (e.g. a different generator model) */
+const GENOME_CURRENT = process.env.GENOME_DIR ? path.resolve(process.env.GENOME_DIR) : path.join(ROOT, "genome", "current");
+const RUNS = process.env.RUNS_DIR ? path.resolve(process.env.RUNS_DIR) : path.join(ROOT, "runs");
 const LOG = path.join(RUNS, "log.jsonl");
+const MODEL = process.env.GEN_MODEL ?? "kimi-k3";
 
 const SCREEN_SIZE = 5;
 const CONFIRM_SIZE = 5;
 const WIN_THRESHOLD = 4;
 const MIN_DECISIVE = 3;
-const GEN_CONCURRENCY = 2;
+const GEN_CONCURRENCY = Number(process.env.GEN_CONCURRENCY ?? 2);
 
 interface PromptEntry { id: string; prompt: string }
 
@@ -58,7 +61,7 @@ function readLog(): Record<string, any>[] {
  * current render; only the semantic verdict is cached with the artifact.
  */
 async function preparePage(p: PromptEntry, genomeDir: string, runsBase: string): Promise<PageOutcome> {
-  const gen = await generate(p.id, p.prompt, genomeDir, runsBase);
+  const gen = await generate(p.id, p.prompt, genomeDir, runsBase, MODEL);
   if (!gen.ok || !gen.htmlPath) return { status: "gen_fail", detail: gen.error ?? "?" };
 
   const renderRes = await render(gen.htmlPath, gen.outDir);
@@ -109,8 +112,8 @@ async function stage(
   let candidateFailures = 0;
   const results: Record<string, string> = {};
 
-  await pooled(prompts, GEN_CONCURRENCY, (p) => generate(p.id, p.prompt, candDir, runsBase));
-  await pooled(prompts, GEN_CONCURRENCY, (p) => generate(p.id, p.prompt, incDir, runsBase));
+  await pooled(prompts, GEN_CONCURRENCY, (p) => generate(p.id, p.prompt, candDir, runsBase, MODEL));
+  await pooled(prompts, GEN_CONCURRENCY, (p) => generate(p.id, p.prompt, incDir, runsBase, MODEL));
 
   for (const p of prompts) {
     const cand = await preparePage(p, candDir, runsBase);
@@ -153,7 +156,7 @@ async function propose(history: string[]): Promise<{ rationale: string; system_m
     "You are evolving the system prompt of a landing-page-generating coding agent (the 'genome').",
     "Propose ONE focused mutation: add, sharpen, replace, or remove a small number of design rules.",
     "Good mutations are concrete and visual (typography scale, spacing system, color strategy, contrast rules, hero composition, section rhythm). Avoid vague advice.",
-    "The generator model is Kimi K3 producing a single self-contained index.html; keep all existing hard constraints (self-contained, no external assets, include required sections).",
+    `The generator model is ${MODEL} producing a single self-contained index.html; keep all existing hard constraints (self-contained, no external assets, include required sections).`,
     "The pages are screened on mobile too: rules that prevent horizontal overflow at 390px width have historically converted directly into wins.",
     "",
     "CURRENT GENOME (system.md):",
@@ -230,8 +233,8 @@ async function main(): Promise<void> {
 
   for (let i = 0; i < maxIterations; i++) {
     const globalIter = iterationOffset + i;
-    console.log(`\n=== iteration ${globalIter} (incumbent ${genomeHash(GENOME_CURRENT)}) ===`);
-    const candDir = path.join(ROOT, "genome", `candidate-${Date.now()}`);
+    console.log(`\n=== iteration ${globalIter} (incumbent ${genomeHash(GENOME_CURRENT)}, model ${MODEL}) ===`);
+    const candDir = path.join(path.dirname(GENOME_CURRENT), `candidate-${Date.now()}`);
 
     try {
       const proposal = await propose(history);
