@@ -46,6 +46,7 @@ export async function generate(
   promptText: string,
   genomeDir: string,
   runsBase = path.join(ROOT, "runs"),
+  model = "kimi-k3",
 ): Promise<GenResult> {
   loadEnv();
   const hash = genomeHash(genomeDir);
@@ -66,7 +67,7 @@ export async function generate(
   for (let attempt = 0; attempt < backoffsMs.length; attempt++) {
     if (backoffsMs[attempt]) await new Promise((r) => setTimeout(r, backoffsMs[attempt]));
 
-    const outcome = await attemptOnce(promptId, systemFile, task);
+    const outcome = await attemptOnce(promptId, systemFile, task, model);
     if (outcome.htmlSrc) {
       const durationMs = Date.now() - started;
       fs.mkdirSync(outDir, { recursive: true });
@@ -75,7 +76,7 @@ export async function generate(
       fs.renameSync(htmlOut + ".tmp", htmlOut);
       fs.writeFileSync(
         path.join(outDir, "meta.json"),
-        JSON.stringify({ promptId, genome: hash, model: "kimi-k3", durationMs, attempt }, null, 2),
+        JSON.stringify({ promptId, genome: hash, model, durationMs, attempt }, null, 2),
       );
       fs.rmSync(path.dirname(outcome.htmlSrc), { recursive: true, force: true });
       return { ok: true, outDir, htmlPath: htmlOut, durationMs };
@@ -90,6 +91,7 @@ async function attemptOnce(
   promptId: string,
   systemFile: string,
   task: string,
+  model: string,
 ): Promise<{ htmlSrc?: string; error: string }> {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "autoloop-gen-"));
 
@@ -98,7 +100,7 @@ async function attemptOnce(
       "pi",
       [
         "--provider", "moonshotai",
-        "--model", "kimi-k3",
+        "--model", model,
         "-p",
         "--no-session",
         "--no-context-files",
