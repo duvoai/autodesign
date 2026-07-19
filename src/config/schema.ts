@@ -16,14 +16,28 @@ export const SubagentSchema = z.object({
   tools: z.array(z.enum(ALLOWED_TOOLS)),
 });
 
+export const ModelSchema = z.object({
+  name: z.string().min(1),
+  thinking_level: z.enum(THINKING_LEVELS),
+});
+
+// The mutator LLM sometimes flattens `model` to a bare string (e.g. "anthropic/claude-sonnet-4-6")
+// or omits thinking_level. Normalize those into the canonical object before validation so a single
+// stray shape doesn't crash a whole run. z.toJSONSchema still emits the strict object, so the tool
+// schema keeps guiding the model toward the correct shape.
+const ModelField = z.preprocess((v) => {
+  if (typeof v === "string") return { name: v, thinking_level: "medium" };
+  if (v && typeof v === "object" && !Array.isArray(v) && !("thinking_level" in (v as Record<string, unknown>))) {
+    return { thinking_level: "medium", ...(v as Record<string, unknown>) };
+  }
+  return v;
+}, ModelSchema);
+
 export const HarnessConfigSchema = z.object({
   version: z.number().int().nonnegative(),
   parent_version: z.number().int().nonnegative().nullable(),
   rationale: z.string(),
-  model: z.object({
-    name: z.string().min(1),
-    thinking_level: z.enum(THINKING_LEVELS),
-  }),
+  model: ModelField,
   tools: z.array(z.enum(ALLOWED_TOOLS)).min(1),
   system_instructions: z.string().min(1),
   skills: z.array(SkillSchema).max(8),
