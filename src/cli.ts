@@ -1,0 +1,75 @@
+import { parseArgs } from "node:util";
+import { join } from "node:path";
+import { loadPrompts, trainPrompts, holdoutPrompts } from "./prompts";
+import { RunStore } from "./store/run-store";
+import { realClient } from "./llm";
+import { runLoop, runHoldout } from "./orchestrator";
+import { buildReferenceSet } from "./reference/build-reference";
+
+const RUNS_DIR = "runs";
+const REFERENCE_DIR = join(RUNS_DIR, "reference");
+const EVAL_MODEL = process.env.EVAL_MODEL ?? "claude-opus-4-8";
+
+const [command] = Bun.argv.slice(2);
+const { values } = parseArgs({
+  args: Bun.argv.slice(3),
+  options: {
+    iterations: { type: "string", default: "5" },
+    "run-id": { type: "string" },
+    concurrency: { type: "string", default: "5" },
+    version: { type: "string" },
+    force: { type: "boolean", default: false },
+  },
+});
+
+const all = loadPrompts();
+const concurrency = Number(values.concurrency);
+
+async function main() {
+  switch (command) {
+    case "reference": {
+      // Reference building remains wired up so it can be run later, but it is no longer
+      // a prerequisite for loop/resume/holdout — those tolerate an empty reference dir
+      // and score rubric-only (reference comparison is deferred).
+      const r = await buildReferenceSet({ prompts: all, referenceDir: REFERENCE_DIR, concurrency, force: values.force });
+      console.log(`built: ${r.built.length}, skipped: ${r.skipped.length}, failed: ${r.failed.length}`);
+      for (const f of r.failed) console.error(`  FAILED ${f.id}: ${f.error}`);
+      if (r.failed.length) process.exit(1);
+      break;
+    }
+    case "loop":
+    case "resume": {
+      const runId = values["run-id"] ?? `run-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")}`;
+      if (command === "resume" && !values["run-id"]) throw new Error("resume requires --run-id");
+      const train = trainPrompts(all);
+      const store = new RunStore(RUNS_DIR, runId);
+      store.initRun({ eval_model: EVAL_MODEL, concurrency });
+      console.log(`run: ${runId}`);
+      await runLoop({
+        store, prompts: train, iterations: Number(values.iterations), concurrency,
+        client: realClient(), evalModel: EVAL_MODEL, referenceDir: REFERENCE_DIR,
+      });
+      const best = store.bestVersion();
+      console.log(`done. best config: v${best.version} (mean ${best.score.toFixed(1)})`);
+      break;
+    }
+    case "holdout": {
+      if (!values["run-id"]) throw new Error("holdout requires --run-id");
+      const store = new RunStore(RUNS_DIR, values["run-id"]);
+      const holdout = holdoutPrompts(all);
+      const version = values.version ? Number(values.version) : store.bestVersion().version;
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const summary = await runHoldout({
+        store, prompts: holdout, configVersion: version, concurrency,
+        client: realClient(), evalModel: EVAL_MODEL, referenceDir: REFERENCE_DIR,
+        outDir: join(store.root, "holdout", stamp),
+      });
+      console.log(`holdout mean for v${version}: ${summary.mean_overall.toFixed(1)}`);
+      break;
+    }
+    default:
+      console.error("usage: bun src/cli.ts <reference|loop|resume|holdout> [options]");
+      process.exit(1);
+  }
+}
+main();
