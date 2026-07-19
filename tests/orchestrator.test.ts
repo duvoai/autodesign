@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { mkdtempSync, writeFileSync, chmodSync, mkdirSync, existsSync } from "node:fs";
+import { mkdtempSync, writeFileSync, chmodSync, mkdirSync, existsSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { runLoop, runHoldout } from "../src/orchestrator";
@@ -57,6 +57,38 @@ test("two iterations: configs, summaries, history, best tracking", async () => {
   const s = store.loadSummaries()[0];
   expect(s.mutator_rationale).toBe("tweak");
   expect(existsSync(join(store.root, "iterations", "1", "config-version.txt"))).toBe(true);
+}, 120000);
+
+test("resume after mid-iteration crash does not duplicate history or re-pick config", async () => {
+  const { refDir, store } = setup();
+  await runLoop({
+    store, prompts: [P("a", "train"), P("b", "train")], iterations: 1, concurrency: 2,
+    client: fakeClient(), evalModel: "m", referenceDir: refDir,
+  });
+
+  expect(store.readHistory().length).toBe(1);
+  expect(store.completedIterations()).toEqual([1]);
+  const configVersionFile = join(store.root, "iterations", "1", "config-version.txt");
+  const pinnedVersionBefore = readFileSync(configVersionFile, "utf8");
+  expect(store.listConfigVersions()).toEqual([0, 1]);
+
+  // Simulate a crash that happened after appendHistory/saveConfig but before saveSummary:
+  // delete iteration 1's summary.json so completedIterations() no longer counts it, while
+  // leaving its history row and config-version.txt in place.
+  rmSync(join(store.root, "iterations", "1", "summary.json"));
+  expect(store.completedIterations()).toEqual([]);
+
+  // Resume: startIteration defaults to last-completed+1 == 1 again.
+  await runLoop({
+    store, prompts: [P("a", "train"), P("b", "train")], iterations: 1, concurrency: 2,
+    client: fakeClient(), evalModel: "m", referenceDir: refDir,
+  });
+
+  const history = store.readHistory();
+  expect(history.filter((h) => h.iteration === 1).length).toBe(1); // no duplicate row
+  const pinnedVersionAfter = readFileSync(configVersionFile, "utf8");
+  expect(pinnedVersionAfter).toBe(pinnedVersionBefore); // pinned to the same config version
+  expect(store.completedIterations()).toEqual([1]);
 }, 120000);
 
 test("holdout writes report without touching history", async () => {

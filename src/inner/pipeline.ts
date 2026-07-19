@@ -1,4 +1,4 @@
-import { readdirSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { ResolvedHarness } from "../config/resolver";
 import type { PromptSpec } from "../prompts";
@@ -9,6 +9,7 @@ import { screenshotPage } from "./screenshot";
 import { evaluatePage } from "./evaluate";
 
 export function referenceSegments(referenceDir: string, promptId: string): string[] {
+  if (!existsSync(referenceDir)) return [];
   const re = new RegExp(`^${promptId}\\.desktop\\.(\\d+)\\.png$`);
   return readdirSync(referenceDir)
     .map((f) => ({ f, m: f.match(re) }))

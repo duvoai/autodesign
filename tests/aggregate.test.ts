@@ -22,3 +22,12 @@ test("means: failures are 0, eval_failed excluded", () => {
   expect(s.mean_overall).toBeCloseTo((80 + 60 + 0) / 3);
   expect(s.dimension_means.hierarchy).toBeCloseTo(7);
 });
+
+test("all eval_failed: mean_overall is 0 and dimension_means is empty", () => {
+  const s = aggregate(1, 0, [
+    { prompt_id: "a", status: "eval_failed", overall: 0, error: "api" },
+    { prompt_id: "b", status: "eval_failed", overall: 0, error: "api" },
+  ]);
+  expect(s.mean_overall).toBe(0);
+  expect(s.dimension_means).toEqual({});
+});

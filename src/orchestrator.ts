@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { BASELINE_CONFIG } from "./config/schema";
 import { resolveHarness } from "./config/resolver";
@@ -28,13 +28,21 @@ export async function runLoop(opts: {
   const start = opts.startIteration ?? (completed.length ? Math.max(...completed) + 1 : 1);
 
   for (let iter = start; iter < start + opts.iterations; iter++) {
-    // The config to evaluate this iteration: the newest saved config (last mutation's proposal, or baseline).
-    const versions = store.listConfigVersions();
-    const configVersion = Math.max(...versions);
-    const config = store.loadConfig(configVersion);
-
+    // The config to evaluate this iteration: normally the newest saved config (last mutation's
+    // proposal, or baseline). But if a prior attempt at this iteration already wrote
+    // config-version.txt (crashed before saveSummary), pin to that same version so a resume
+    // re-evaluates the identical config rather than a newer one saved by the partial attempt.
     const iterDir = store.iterationDir(iter);
-    writeFileSync(join(iterDir, "config-version.txt"), String(configVersion));
+    const configVersionFile = join(iterDir, "config-version.txt");
+    let configVersion: number;
+    if (existsSync(configVersionFile)) {
+      configVersion = Number(readFileSync(configVersionFile, "utf8"));
+    } else {
+      const versions = store.listConfigVersions();
+      configVersion = Math.max(...versions);
+      writeFileSync(configVersionFile, String(configVersion));
+    }
+    const config = store.loadConfig(configVersion);
     const resolved = resolveHarness(config, join(iterDir, "resolved"));
 
     console.log(`[iter ${iter}] config v${configVersion} — building ${prompts.length} prompts…`);
@@ -52,13 +60,16 @@ export async function runLoop(opts: {
 
     const summary = aggregate(iter, configVersion, outcomes);
     const prevBest = store.bestVersion();
-    store.appendHistory({
-      iteration: iter,
-      config_version: configVersion,
-      mean_overall: summary.mean_overall,
-      best_version: summary.mean_overall > prevBest.score ? configVersion : prevBest.version,
-      best_score: Math.max(summary.mean_overall, prevBest.score),
-    });
+    const alreadyRecorded = store.readHistory().some((h) => h.iteration === iter);
+    if (!alreadyRecorded) {
+      store.appendHistory({
+        iteration: iter,
+        config_version: configVersion,
+        mean_overall: summary.mean_overall,
+        best_version: summary.mean_overall > prevBest.score ? configVersion : prevBest.version,
+        best_score: Math.max(summary.mean_overall, prevBest.score),
+      });
+    }
 
     const best = store.bestVersion();
     const bestConfig = store.loadConfig(best.version);

@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdtempSync, writeFileSync, chmodSync, mkdirSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { runPromptPipeline } from "../src/inner/pipeline";
+import { runPromptPipeline, referenceSegments } from "../src/inner/pipeline";
 import { pLimit } from "../src/util/concurrency";
 import { resolveHarness } from "../src/config/resolver";
 import { BASELINE_CONFIG } from "../src/config/schema";
@@ -48,6 +48,25 @@ test("reference-free path: no reference segments still produces ok outcome", asy
   const out = await runPromptPipeline({
     resolved, prompt: { id: "no-such-prompt", category: "c", split: "train", prompt: "x" },
     promptDir, client, evalModel: "m", referenceDir: refDir,
+  });
+  expect(out.status).toBe("ok");
+  expect(out.overall).toBe(62);
+  expect(existsSync(join(promptDir, "eval.json"))).toBe(true);
+}, 60000);
+
+test("missing reference dir: referenceSegments returns [] without throwing", () => {
+  const { base } = setup();
+  expect(referenceSegments(join(base, "nope"), "x")).toEqual([]);
+});
+
+test("missing reference dir: runPromptPipeline still produces ok outcome", async () => {
+  const { base, promptDir, client } = setup();
+  const resolved = resolveHarness(BASELINE_CONFIG, join(promptDir, "resolved"));
+  const missingRefDir = join(base, "does-not-exist");
+  expect(existsSync(missingRefDir)).toBe(false);
+  const out = await runPromptPipeline({
+    resolved, prompt: { id: "t1", category: "c", split: "train", prompt: "x" },
+    promptDir, client, evalModel: "m", referenceDir: missingRefDir,
   });
   expect(out.status).toBe("ok");
   expect(out.overall).toBe(62);

@@ -1,5 +1,4 @@
 node_modules/
 runs/
-!runs/reference/.gitkeep
 *.log
 .env
