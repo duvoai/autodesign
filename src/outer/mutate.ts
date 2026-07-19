@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { z } from "zod";
 import { HarnessConfigSchema, type HarnessConfig } from "../config/schema";
 import type { HistoryEntry, IterationSummary } from "../store/run-store";
+import { runPiCapped } from "../util/pi";
 
 // Per-prompt artifacts the agentic mutator can inspect for the latest iteration.
 export type MutationArtifact = {
@@ -93,8 +94,9 @@ export async function mutateConfig(opts: {
   timeoutMs?: number;
   maxRetries?: number;
 }): Promise<HarnessConfig> {
-  const { workDir, timeoutMs = 10 * 60 * 1000, maxRetries = 2 } = opts;
+  const { workDir, timeoutMs = 6 * 60 * 1000, maxRetries = 2 } = opts;
   const bin = process.env.PI_BIN ?? "pi";
+  const thinking = process.env.MUTATOR_THINKING ?? "medium";
   const outPath = join(workDir, "next-config.json");
   const sysPath = join(workDir, "mutator-system.md");
   const logPath = join(workDir, "mutate.log");
@@ -116,21 +118,15 @@ export async function mutateConfig(opts: {
       "--no-context-files",
       "--no-prompt-templates",
       "--model", opts.mutatorModel,
-      "--thinking", "high",
+      "--thinking", thinking,
       "--tools", "read,write,bash",
       "--append-system-prompt", sysPath,
       instruction,
     ];
-    const proc = Bun.spawn([bin, ...piArgs], { cwd: workDir, stdout: "pipe", stderr: "pipe", env: { ...process.env } });
-    const timer = setTimeout(() => proc.kill(), timeoutMs);
-    const [stdout, stderr, exitCode] = await Promise.all([
-      new Response(proc.stdout).text(),
-      new Response(proc.stderr).text(),
-      proc.exited,
-    ]);
-    clearTimeout(timer);
-    writeFileSync(logPath, `# attempt ${attempt} exit ${exitCode}\n## stdout\n${stdout}\n## stderr\n${stderr}\n`);
+    const { stdout, stderr, exitCode, timedOut } = await runPiCapped(bin, piArgs, { cwd: workDir, timeoutMs });
+    writeFileSync(logPath, `# attempt ${attempt} exit ${exitCode}${timedOut ? " (timed out)" : ""}\n## stdout\n${stdout}\n## stderr\n${stderr}\n`);
 
+    if (timedOut) { lastError = "pi mutation timed out"; continue; }
     if (!existsSync(outPath)) { lastError = "no next-config.json was written"; continue; }
     let raw: unknown;
     try {

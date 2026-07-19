@@ -2,6 +2,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import type { ResolvedHarness } from "../config/resolver";
 import type { PromptSpec } from "../prompts";
+import { runPiCapped } from "../util/pi";
 
 export type BuildResult =
   | { ok: true; htmlPath: string; logPath: string }
@@ -21,22 +22,14 @@ export async function buildPage(opts: {
   const logPath = join(dirname(workspaceDir), "build.log");
   const bin = process.env.PI_BIN ?? "pi";
 
-  const proc = Bun.spawn([bin, ...resolved.piArgs, BUILD_INSTRUCTION + prompt.prompt], {
+  const { stdout, stderr, exitCode, timedOut } = await runPiCapped(bin, [...resolved.piArgs, BUILD_INSTRUCTION + prompt.prompt], {
     cwd: workspaceDir,
-    stdout: "pipe",
-    stderr: "pipe",
-    env: { ...process.env },
+    timeoutMs,
   });
-  const timer = setTimeout(() => proc.kill(), timeoutMs);
-  const [stdout, stderr, exitCode] = await Promise.all([
-    new Response(proc.stdout).text(),
-    new Response(proc.stderr).text(),
-    proc.exited,
-  ]);
-  clearTimeout(timer);
-  writeFileSync(logPath, `# exit ${exitCode}\n## stdout\n${stdout}\n## stderr\n${stderr}\n`);
+  writeFileSync(logPath, `# exit ${exitCode}${timedOut ? " (timed out)" : ""}\n## stdout\n${stdout}\n## stderr\n${stderr}\n`);
 
   const htmlPath = join(workspaceDir, "output.html");
+  if (timedOut) return { ok: false, error: "pi build timed out", logPath };
   if (exitCode !== 0) return { ok: false, error: `pi exited ${exitCode}`, logPath };
   if (!existsSync(htmlPath)) return { ok: false, error: "no output.html produced", logPath };
   const html = readFileSync(htmlPath, "utf8");

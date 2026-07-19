@@ -14,11 +14,14 @@ import type { RunStore, IterationSummary } from "./store/run-store";
 function collectArtifacts(store: RunStore, iter: number, referenceDir: string, summary: IterationSummary): MutationArtifact[] {
   return summary.outcomes.map((o) => {
     const promptDir = store.promptDir(iter, o.prompt_id);
+    // Keep the mutator's read load bounded: at most the first 4 desktop candidate segments and the
+    // first 3 reference segments. Too many large PNGs slows the agentic mutation and inflates tokens.
     const candidateScreens = existsSync(promptDir)
       ? readdirSync(promptDir)
           .filter((f) => /^candidate\.desktop\.\d+\.png$/.test(f))
           .sort((a, b) => Number(a.match(/\d+/)![0]) - Number(b.match(/\d+/)![0]))
           .map((f) => join(promptDir, f))
+          .slice(0, 4)
       : [];
     const htmlPath = join(promptDir, "workspace", "output.html");
     return {
@@ -29,7 +32,7 @@ function collectArtifacts(store: RunStore, iter: number, referenceDir: string, s
       vsReference: o.eval?.vs_reference,
       htmlPath: existsSync(htmlPath) ? htmlPath : undefined,
       candidateScreens,
-      referenceScreens: referenceSegments(referenceDir, o.prompt_id),
+      referenceScreens: referenceSegments(referenceDir, o.prompt_id).slice(0, 3),
     };
   });
 }
