@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { mkdtempSync, writeFileSync, chmodSync, mkdirSync } from "node:fs";
+import { mkdtempSync, writeFileSync, chmodSync, mkdirSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { runPromptPipeline } from "../src/inner/pipeline";
@@ -40,6 +40,18 @@ test("happy path produces ok outcome with eval.json", async () => {
   });
   expect(out.status).toBe("ok");
   expect(out.overall).toBe(62);
+}, 60000);
+
+test("reference-free path: no reference segments still produces ok outcome", async () => {
+  const { refDir, promptDir, client } = setup();
+  const resolved = resolveHarness(BASELINE_CONFIG, join(promptDir, "resolved"));
+  const out = await runPromptPipeline({
+    resolved, prompt: { id: "no-such-prompt", category: "c", split: "train", prompt: "x" },
+    promptDir, client, evalModel: "m", referenceDir: refDir,
+  });
+  expect(out.status).toBe("ok");
+  expect(out.overall).toBe(62);
+  expect(existsSync(join(promptDir, "eval.json"))).toBe(true);
 }, 60000);
 
 test("pLimit caps concurrency", async () => {

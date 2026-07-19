@@ -19,7 +19,7 @@ export async function mutateConfig(opts: {
 }): Promise<HarnessConfig> {
   const critiques = opts.latestSummary.outcomes
     .filter((o) => o.eval)
-    .map((o) => `- ${o.prompt_id} (${o.overall}, ${o.eval!.vs_reference}): ${o.eval!.critique}`)
+    .map((o) => `- ${o.prompt_id} (${o.overall}, ${o.eval!.vs_reference ?? "n/a"}): ${o.eval!.critique}`)
     .join("\n");
   const failures = opts.latestSummary.outcomes
     .filter((o) => o.status !== "ok")

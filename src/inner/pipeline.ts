@@ -39,9 +39,6 @@ export async function runPromptPipeline(opts: {
 
   try {
     const refs = referenceSegments(opts.referenceDir, prompt.id);
-    if (!refs.length) {
-      return { prompt_id: prompt.id, status: "eval_failed", overall: 0, error: "no reference segments found" };
-    }
     const evalResult = await evaluatePage({
       client: opts.client,
       model: opts.evalModel,

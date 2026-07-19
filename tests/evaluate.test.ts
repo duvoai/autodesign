@@ -40,3 +40,29 @@ test("returns parsed eval and sends capped image segments + rubric", async () =>
   const images = captured.messages[0].content.filter((b: any) => b.type === "image");
   expect(images.length).toBe(2 + 3 + 4);                     // desktop + capped mobile + capped reference
 });
+
+const validNoRef = {
+  subscores: { hierarchy: 7, typography: 6, spacing: 7, color_contrast: 8, requirement_coverage: 9, polish: 6 },
+  overall: 68, critique: "Weak type scale.",
+};
+
+test("evaluates with no reference provided: rubric-only, zero reference images", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "eval-"));
+  let captured: any;
+  const client: LlmClient = {
+    messages: { create: async (params) => { captured = params; return { content: [{ type: "tool_use", name: "submit_evaluation", input: validNoRef }] }; } },
+  };
+  const r = await evaluatePage({
+    client, model: "test-model",
+    prompt: { id: "p", category: "c", split: "train", prompt: "Landing page for X. Must include: hero." },
+    candidate: {
+      desktop: [png(dir, "d0.png"), png(dir, "d1.png")],
+      mobile: [png(dir, "m0.png"), png(dir, "m1.png")],
+    },
+  });
+  expect(EvalResultSchema.parse(r)).toEqual(validNoRef as any);
+  const images = captured.messages[0].content.filter((b: any) => b.type === "image");
+  expect(images.length).toBe(2 + 2); // desktop + mobile, no reference images
+  const text = JSON.stringify(captured.messages);
+  expect(text).not.toContain("Reference page");
+});
