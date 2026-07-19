@@ -94,7 +94,7 @@ export async function mutateConfig(opts: {
   timeoutMs?: number;
   maxRetries?: number;
 }): Promise<HarnessConfig> {
-  const { workDir, timeoutMs = 6 * 60 * 1000, maxRetries = 2 } = opts;
+  const { workDir, timeoutMs = Number(process.env.MUTATOR_TIMEOUT_MS) || 6 * 60 * 1000, maxRetries = 2 } = opts;
   const bin = process.env.PI_BIN ?? "pi";
   const thinking = process.env.MUTATOR_THINKING ?? "medium";
   const outPath = join(workDir, "next-config.json");

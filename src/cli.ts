@@ -1,7 +1,8 @@
 import { parseArgs } from "node:util";
 import { join } from "node:path";
+import { readFileSync } from "node:fs";
 import { loadPrompts, trainPrompts, holdoutPrompts } from "./prompts";
-import { ALLOWED_MODELS } from "./config/schema";
+import { ALLOWED_MODELS, HarnessConfigSchema } from "./config/schema";
 import { RunStore } from "./store/run-store";
 import { realClient } from "./llm";
 import { runLoop, runHoldout } from "./orchestrator";
@@ -26,6 +27,7 @@ const { values } = parseArgs({
     limit: { type: "string" },
     model: { type: "string" },
     prompts: { type: "string" },
+    "seed-config": { type: "string" },
   },
 });
 
@@ -37,6 +39,9 @@ if (builderModel && !(ALLOWED_MODELS as readonly string[]).includes(builderModel
   console.error(`--model must be one of: ${ALLOWED_MODELS.join(", ")}`);
   process.exit(1);
 }
+const seedConfig = values["seed-config"]
+  ? HarnessConfigSchema.parse(JSON.parse(readFileSync(values["seed-config"], "utf8")))
+  : undefined;
 
 async function main() {
   switch (command) {
@@ -61,7 +66,7 @@ async function main() {
       await runLoop({
         store, prompts: train, iterations: Number(values.iterations), concurrency,
         client: realClient(), evalModel: EVAL_MODEL, referenceDir: REFERENCE_DIR,
-        builderModel, mutatorModel: MUTATOR_MODEL,
+        builderModel, mutatorModel: MUTATOR_MODEL, seedConfig,
       });
       const best = store.bestVersion();
       console.log(`done. best config: v${best.version} (mean ${best.score.toFixed(1)})`);

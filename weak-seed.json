@@ -1,0 +1,10 @@
+{
+  "version": 0,
+  "parent_version": null,
+  "rationale": "Deliberately weak showcase baseline: no design guidance, fast/weak builder, no thinking, no skills or subagents. The point is for iteration 1 to fail so the outer loop's improvement is dramatic and legible.",
+  "model": { "name": "anthropic/claude-haiku-4-5", "thinking_level": "off" },
+  "tools": ["read", "write", "bash"],
+  "system_instructions": "Create the landing page as a single output.html file that satisfies the brief.",
+  "skills": [],
+  "subagents": []
+}

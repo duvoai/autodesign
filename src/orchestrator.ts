@@ -48,6 +48,7 @@ export async function runLoop(opts: {
   startIteration?: number;
   builderModel?: string;
   mutatorModel: string;
+  seedConfig?: typeof BASELINE_CONFIG;
 }): Promise<void> {
   const { store, prompts, client, evalModel, referenceDir, concurrency, builderModel, mutatorModel } = opts;
   if (prompts.some((p) => p.split !== "train")) throw new Error("runLoop accepts train prompts only");
@@ -57,7 +58,7 @@ export async function runLoop(opts: {
   const pinModel = (c: typeof BASELINE_CONFIG) =>
     builderModel ? HarnessConfigSchema.parse({ ...c, model: { ...c.model, name: builderModel } }) : c;
 
-  if (store.listConfigVersions().length === 0) store.saveConfig(pinModel(BASELINE_CONFIG));
+  if (store.listConfigVersions().length === 0) store.saveConfig(pinModel(opts.seedConfig ?? BASELINE_CONFIG));
   const completed = store.completedIterations();
   const start = opts.startIteration ?? (completed.length ? Math.max(...completed) + 1 : 1);
 

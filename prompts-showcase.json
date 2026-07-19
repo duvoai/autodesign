@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "description": "Single design-critical prompt for the improvement showcase run. Scored against strong Mobbin references (Linear/Neon/Vercel-class dev-tool pages), so a naive baseline page scores low and the outer loop's design skills produce a steep, legible climb.",
+  "prompts": [
+    {
+      "id": "showcase-devtool",
+      "category": "dev-tool",
+      "split": "train",
+      "prompt": "Landing page for 'Volt', a developer platform for instant global edge deployments. Sleek, modern, developer-focused design. Must include: a hero with a bold headline, a supporting subhead, and a primary 'Start deploying' CTA; a terminal-style code snippet showing a one-line deploy; a three-feature section (instant rollbacks, global edge network, zero-config); a logos-of-trust bar; a simple three-tier pricing section (Hobby, Pro, Enterprise); and a footer with links. Aim for a polished, premium feel worthy of a top developer tool."
+    }
+  ]
+}
