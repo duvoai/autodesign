@@ -10,7 +10,9 @@ import { buildReferenceSet } from "./reference/build-reference";
 const RUNS_DIR = "runs";
 const REFERENCE_DIR = join(RUNS_DIR, "reference");
 const EVAL_MODEL = process.env.EVAL_MODEL ?? "claude-opus-4-8";
-const MUTATOR_MODEL = process.env.MUTATOR_MODEL ?? "anthropic/claude-fable-5";
+// Fable (anthropic/claude-fable-5) is gated behind workspace data-retention; default to Opus, which
+// is accessible. Set MUTATOR_MODEL=anthropic/claude-fable-5 once data retention is enabled to use Fable.
+const MUTATOR_MODEL = process.env.MUTATOR_MODEL ?? "anthropic/claude-opus-4-8";
 
 const [command] = Bun.argv.slice(2);
 const { values } = parseArgs({
