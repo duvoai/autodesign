@@ -13,18 +13,18 @@ export async function judgePair(
   briefText: string,
   candidateShot: string,
   incumbentShot: string,
-): Promise<{ verdict: Verdict; raw: [string, string] }> {
+): Promise<{ verdict: Verdict; raw: [string, string]; errored: boolean }> {
   const [first, second] = await Promise.all([
     judgeOnce(briefText, candidateShot, incumbentShot), // candidate=A
     judgeOnce(briefText, incumbentShot, candidateShot), // candidate=B
   ]);
 
-  // Map positional answers back to pages
+  // Map positional answers back to pages; an errored call is a tie but flagged as such
   const firstPick = first === "A" ? "candidate" : first === "B" ? "incumbent" : "tie";
   const secondPick = second === "A" ? "incumbent" : second === "B" ? "candidate" : "tie";
 
   const verdict: Verdict = firstPick === secondPick ? firstPick : "tie";
-  return { verdict, raw: [first, second] };
+  return { verdict, raw: [first, second], errored: first === "error" || second === "error" };
 }
 
 async function judgeOnce(briefText: string, shotA: string, shotB: string): Promise<string> {
@@ -42,10 +42,10 @@ async function judgeOnce(briefText: string, shotA: string, shotB: string): Promi
       const { winner } = lastJson<{ winner: string }>(out);
       if (winner === "A" || winner === "B" || winner === "tie") return winner;
     } catch {
-      // retry once, then fall through to tie
+      // retry once, then fall through to an error verdict (scored as tie, logged distinctly)
     }
   }
-  return "tie";
+  return "error";
 }
 
 // CLI: tsx src/judge.ts <brief> <candidate.png> <incumbent.png>

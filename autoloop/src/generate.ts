@@ -7,7 +7,7 @@ import path from "node:path";
 /** Repo root (autoloop/src -> autodesign) */
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
 
-const PI_TIMEOUT_MS = 5 * 60 * 1000;
+const PI_TIMEOUT_MS = 9 * 60 * 1000;
 const MIN_HTML_BYTES = 500;
 
 /** Load KEY=VALUE pairs from the repo .env without overriding existing env */
@@ -70,7 +70,9 @@ export async function generate(
     if (outcome.htmlSrc) {
       const durationMs = Date.now() - started;
       fs.mkdirSync(outDir, { recursive: true });
-      fs.copyFileSync(outcome.htmlSrc, htmlOut);
+      // Atomic publish: a killed process must never leave a truncated index.html behind
+      fs.copyFileSync(outcome.htmlSrc, htmlOut + ".tmp");
+      fs.renameSync(htmlOut + ".tmp", htmlOut);
       fs.writeFileSync(
         path.join(outDir, "meta.json"),
         JSON.stringify({ promptId, genome: hash, model: "kimi-k3", durationMs, attempt }, null, 2),

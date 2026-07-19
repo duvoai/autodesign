@@ -14,6 +14,7 @@ export function claudeCall(
   const env = { ...process.env };
   delete env.ANTHROPIC_BASE_URL;
   delete env.ANTHROPIC_API_KEY;
+  delete env.ANTHROPIC_AUTH_TOKEN;
 
   return new Promise((resolve, reject) => {
     const child = execFile(
@@ -27,9 +28,26 @@ export function claudeCall(
   });
 }
 
-/** Extract the last JSON object from a model response */
+/**
+ * Extract a JSON object from a model response. Handles nested braces
+ * (e.g. CSS in string fields) by trying progressively wider parses.
+ */
 export function lastJson<T>(text: string): T {
-  const matches = text.match(/\{[^{}]*\}/g);
-  if (!matches) throw new Error(`No JSON in response: ${text.slice(0, 200)}`);
+  const trimmed = text.trim();
+
+  try {
+    return JSON.parse(trimmed) as T;
+  } catch { /* not a bare JSON body */ }
+
+  const first = trimmed.indexOf("{");
+  const last = trimmed.lastIndexOf("}");
+  if (first !== -1 && last > first) {
+    try {
+      return JSON.parse(trimmed.slice(first, last + 1)) as T;
+    } catch { /* fall through to flat-object scan */ }
+  }
+
+  const matches = trimmed.match(/\{[^{}]*\}/g);
+  if (!matches) throw new Error(`No JSON in response: ${trimmed.slice(0, 200)}`);
   return JSON.parse(matches[matches.length - 1]) as T;
 }

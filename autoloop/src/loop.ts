@@ -1,22 +1,27 @@
 import fs from "node:fs";
 import path from "node:path";
-import { chromium } from "playwright";
 import { generate, genomeHash, loadPrompts } from "./generate.js";
 import { render } from "./render.js";
-import { gates } from "./gates.js";
+import { mechanicalGates, semanticGate } from "./gates.js";
 import { judgePair } from "./judge.js";
 import { claudeCall, lastJson } from "./claude.js";
 
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
 const GENOME_CURRENT = path.join(ROOT, "genome", "current");
-const LOG = path.join(ROOT, "runs", "log.jsonl");
+const RUNS = path.join(ROOT, "runs");
+const LOG = path.join(RUNS, "log.jsonl");
 
 const SCREEN_SIZE = 5;
 const CONFIRM_SIZE = 5;
 const WIN_THRESHOLD = 4;
 const MIN_DECISIVE = 3;
+const GEN_CONCURRENCY = 2;
 
 interface PromptEntry { id: string; prompt: string }
+
+type PageOutcome =
+  | { status: "ok"; shot: string }
+  | { status: "gen_fail" | "render_fail" | "gate_fail"; detail: string };
 
 /** Run fn over items with at most `limit` in flight */
 async function pooled<T>(items: T[], limit: number, fn: (item: T) => Promise<unknown>): Promise<void> {
@@ -29,75 +34,116 @@ async function pooled<T>(items: T[], limit: number, fn: (item: T) => Promise<unk
 }
 
 function log(entry: Record<string, unknown>): void {
-  fs.mkdirSync(path.dirname(LOG), { recursive: true });
+  fs.mkdirSync(RUNS, { recursive: true });
   fs.appendFileSync(LOG, JSON.stringify({ ts: new Date().toISOString(), ...entry }) + "\n");
 }
 
-/** Generate (content-addressed, cached) + render + gate one page; returns null on any failure */
-async function preparePage(p: PromptEntry, genomeDir: string) {
-  const gen = await generate(p.id, p.prompt, genomeDir);
-  if (!gen.ok || !gen.htmlPath) return null;
+function readLog(): Record<string, any>[] {
+  if (!fs.existsSync(LOG)) return [];
+  const events: Record<string, any>[] = [];
 
-  const shotExists = fs.existsSync(path.join(gen.outDir, "desktop.png"));
+  // Tolerate a truncated final line from a killed process
+  for (const line of fs.readFileSync(LOG, "utf8").trim().split("\n")) {
+    try {
+      events.push(JSON.parse(line));
+    } catch {
+      console.error(`skipping unparseable log line: ${line.slice(0, 80)}`);
+    }
+  }
+  return events;
+}
+
+/**
+ * Generate + render + gate one page. Mechanical gates always run against the
+ * current render; only the semantic verdict is cached with the artifact.
+ */
+async function preparePage(p: PromptEntry, genomeDir: string, runsBase: string): Promise<PageOutcome> {
+  const gen = await generate(p.id, p.prompt, genomeDir, runsBase);
+  if (!gen.ok || !gen.htmlPath) return { status: "gen_fail", detail: gen.error ?? "?" };
+
   const renderRes = await render(gen.htmlPath, gen.outDir);
-  if (!renderRes.ok) return null;
+  if (!renderRes.ok) return { status: "render_fail", detail: renderRes.error ?? "?" };
 
-  // Gate verdicts are cached alongside artifacts
-  const gatePath = path.join(gen.outDir, "gates.json");
-  let gateRes;
-  if (shotExists && fs.existsSync(gatePath)) {
-    gateRes = JSON.parse(fs.readFileSync(gatePath, "utf8"));
-  } else {
-    gateRes = await gates(renderRes, p.prompt);
-    fs.writeFileSync(gatePath, JSON.stringify(gateRes));
+  const failures = mechanicalGates(renderRes);
+  if (failures.length === 0) {
+    const semPath = path.join(gen.outDir, "semantic.json");
+    let verdict;
+    if (fs.existsSync(semPath)) {
+      verdict = JSON.parse(fs.readFileSync(semPath, "utf8"));
+    } else {
+      verdict = await semanticGate(renderRes.visibleText, p.prompt);
+      fs.writeFileSync(semPath, JSON.stringify(verdict));
+    }
+    if (!verdict.on_topic) failures.push("content not about the prompted product");
+    if (!verdict.sections_present) failures.push(`missing sections: ${verdict.missing || "?"}`);
   }
-  if (!gateRes.pass) {
-    log({ event: "gate_fail", prompt: p.id, genome: genomeHash(genomeDir), failures: gateRes.failures });
-    return null;
+
+  if (failures.length > 0) {
+    log({ event: "gate_fail", prompt: p.id, genome: path.basename(path.dirname(gen.outDir)), failures });
+    return { status: "gate_fail", detail: failures.join("; ") };
   }
-  return { shot: renderRes.desktopShot };
+  return { status: "ok", shot: renderRes.desktopShot };
+}
+
+interface StageOutcome {
+  wins: number;
+  decisive: number;
+  candidateFailures: number;
+  results: Record<string, string>;
 }
 
 /**
  * One judged stage: candidate vs incumbent on the given prompts.
- * A candidate page that fails generation or gates counts as a loss.
+ * `runsBase` controls artifact identity: confirm passes a per-proposal dir so
+ * BOTH genomes generate fresh pages (symmetric generation luck).
  */
 async function stage(
   name: string,
   prompts: PromptEntry[],
   candDir: string,
   incDir: string,
-): Promise<{ wins: number; decisive: number; results: Record<string, string> }> {
+  runsBase = RUNS,
+): Promise<StageOutcome> {
   let wins = 0;
   let decisive = 0;
+  let candidateFailures = 0;
   const results: Record<string, string> = {};
 
-  // Generations are the latency bottleneck, but Moonshot rate-limits concurrency: pool of 2
-  await pooled(prompts, 2, (p) => generate(p.id, p.prompt, candDir));
-  await pooled(prompts, 2, (p) => generate(p.id, p.prompt, incDir));
+  await pooled(prompts, GEN_CONCURRENCY, (p) => generate(p.id, p.prompt, candDir, runsBase));
+  await pooled(prompts, GEN_CONCURRENCY, (p) => generate(p.id, p.prompt, incDir, runsBase));
 
   for (const p of prompts) {
-    const cand = await preparePage(p, candDir);
-    if (!cand) {
-      results[p.id] = "loss(gate/gen)";
+    const cand = await preparePage(p, candDir, runsBase);
+    if (cand.status !== "ok") {
+      results[p.id] = `loss(${cand.status})`;
+      candidateFailures++;
       decisive++;
       continue;
     }
-    const inc = await preparePage(p, incDir);
-    if (!inc) {
-      results[p.id] = "win(incumbent-failed)";
+    const inc = await preparePage(p, incDir, runsBase);
+    if (inc.status !== "ok") {
+      results[p.id] = `win(incumbent-${inc.status})`;
       wins++;
       decisive++;
       continue;
     }
-    const { verdict } = await judgePair(p.prompt, cand.shot, inc.shot);
-    results[p.id] = verdict;
+    const { verdict, raw, errored } = await judgePair(p.prompt, cand.shot, inc.shot);
+    results[p.id] = errored ? `${verdict}(judge-error)` : verdict;
+    log({ event: "judged", stage: name, prompt: p.id, verdict, raw, errored });
     if (verdict !== "tie") decisive++;
     if (verdict === "candidate") wins++;
   }
 
-  log({ event: name, candidate: genomeHash(candDir), incumbent: genomeHash(incDir), wins, decisive, results });
-  return { wins, decisive, results };
+  log({
+    event: name,
+    candidate: genomeHash(candDir),
+    incumbent: genomeHash(incDir),
+    wins,
+    decisive,
+    candidateFailures,
+    results,
+  });
+  return { wins, decisive, candidateFailures, results };
 }
 
 /** Ask the proposer for one mutation to system.md; returns the new full file content */
@@ -105,9 +151,10 @@ async function propose(history: string[]): Promise<{ rationale: string; system_m
   const current = fs.readFileSync(path.join(GENOME_CURRENT, "system.md"), "utf8");
   const prompt = [
     "You are evolving the system prompt of a landing-page-generating coding agent (the 'genome').",
-    "Propose ONE focused mutation: add, sharpen, or replace a small number of design rules.",
-    "Good mutations are concrete and visual (typography scale, spacing system, color strategy, hero composition, section rhythm). Avoid vague advice.",
+    "Propose ONE focused mutation: add, sharpen, replace, or remove a small number of design rules.",
+    "Good mutations are concrete and visual (typography scale, spacing system, color strategy, contrast rules, hero composition, section rhythm). Avoid vague advice.",
     "The generator model is Kimi K3 producing a single self-contained index.html; keep all existing hard constraints (self-contained, no external assets, include required sections).",
+    "The pages are screened on mobile too: rules that prevent horizontal overflow at 390px width have historically converted directly into wins.",
     "",
     "CURRENT GENOME (system.md):",
     "---",
@@ -117,25 +164,21 @@ async function propose(history: string[]): Promise<{ rationale: string; system_m
     "ACCEPT/REJECT HISTORY (most recent last):",
     history.length ? history.join("\n") : "(none yet)",
     "",
-    "Respond with ONLY one JSON object on one line:",
+    "Respond with ONLY one JSON object:",
     '{"rationale": "one sentence", "system_md": "the complete new system.md content"}',
   ].join("\n");
 
   const out = await claudeCall(prompt, { model: "claude-fable-5", timeoutMs: 300000 });
-  return lastJson<{ rationale: string; system_md: string }>(out);
-}
+  const v = lastJson<Record<string, unknown>>(out);
 
-/** Split train prompts into disjoint screen/confirm sets, rotated by iteration */
-function pickPrompts(iteration: number): { screen: PromptEntry[]; confirm: PromptEntry[] } {
-  const train = loadPrompts("train");
-  const rotated = [...train.slice(iteration % train.length), ...train.slice(0, iteration % train.length)];
-  return { screen: rotated.slice(0, SCREEN_SIZE), confirm: rotated.slice(SCREEN_SIZE, SCREEN_SIZE + CONFIRM_SIZE) };
+  if (typeof v.rationale !== "string" || typeof v.system_md !== "string" || v.system_md.length < 100) {
+    throw new Error(`proposer returned invalid shape: ${JSON.stringify(v).slice(0, 200)}`);
+  }
+  return { rationale: v.rationale, system_md: v.system_md };
 }
 
 /** Rebuild proposer history from the persistent log so new runs learn from prior verdicts */
-function seedHistory(): string[] {
-  if (!fs.existsSync(LOG)) return [];
-  const events = fs.readFileSync(LOG, "utf8").trim().split("\n").map((l) => JSON.parse(l));
+function seedHistory(events: Record<string, any>[]): string[] {
   const rationales = new Map(
     events.filter((e) => e.event === "propose").map((e) => [e.candidate, e.rationale]),
   );
@@ -155,47 +198,82 @@ function seedHistory(): string[] {
   return history;
 }
 
+/** Split train prompts into disjoint screen/confirm sets, rotated by global iteration count */
+function pickPrompts(iteration: number): { screen: PromptEntry[]; confirm: PromptEntry[] } {
+  const train = loadPrompts("train");
+  const offset = iteration % train.length;
+  const rotated = [...train.slice(offset), ...train.slice(0, offset)];
+  return { screen: rotated.slice(0, SCREEN_SIZE), confirm: rotated.slice(SCREEN_SIZE, SCREEN_SIZE + CONFIRM_SIZE) };
+}
+
+/** Accept-record first, then swap directories with the smallest possible failure window */
+function promote(candDir: string, iteration: number, rationale: string): string {
+  const promotedHash = genomeHash(candDir);
+  log({ event: "accept", iteration, genome: promotedHash, rationale });
+
+  const next = GENOME_CURRENT + ".next";
+  fs.rmSync(next, { recursive: true, force: true });
+  fs.cpSync(candDir, next, { recursive: true });
+  fs.rmSync(GENOME_CURRENT, { recursive: true, force: true });
+  fs.renameSync(next, GENOME_CURRENT);
+  fs.rmSync(candDir, { recursive: true, force: true });
+  return promotedHash;
+}
+
 async function main(): Promise<void> {
   const maxIterations = Number(process.argv[2] ?? 10);
-  const history: string[] = seedHistory();
-  if (history.length) console.log(`seeded ${history.length} history entries from log`);
+  const priorEvents = readLog();
+  const history = seedHistory(priorEvents);
+  // Global iteration counter survives restarts so prompt rotation keeps advancing
+  const iterationOffset = priorEvents.filter((e) => e.event === "propose").length;
+  if (history.length) console.log(`seeded ${history.length} history entries, iteration offset ${iterationOffset}`);
 
   for (let i = 0; i < maxIterations; i++) {
-    console.log(`\n=== iteration ${i} (incumbent ${genomeHash(GENOME_CURRENT)}) ===`);
-
-    const proposal = await propose(history);
+    const globalIter = iterationOffset + i;
+    console.log(`\n=== iteration ${globalIter} (incumbent ${genomeHash(GENOME_CURRENT)}) ===`);
     const candDir = path.join(ROOT, "genome", `candidate-${Date.now()}`);
-    fs.mkdirSync(candDir, { recursive: true });
-    fs.writeFileSync(path.join(candDir, "system.md"), proposal.system_md);
-    log({ event: "propose", iteration: i, candidate: genomeHash(candDir), rationale: proposal.rationale });
-    console.log(`proposal: ${proposal.rationale}`);
 
-    const { screen, confirm } = pickPrompts(i);
+    try {
+      const proposal = await propose(history);
+      fs.mkdirSync(candDir, { recursive: true });
+      fs.writeFileSync(path.join(candDir, "system.md"), proposal.system_md);
 
-    const s = await stage("screen", screen, candDir, GENOME_CURRENT);
-    console.log(`screen: ${s.wins}/${SCREEN_SIZE} wins, ${s.decisive} decisive`, s.results);
-    if (s.wins < WIN_THRESHOLD || s.decisive < MIN_DECISIVE) {
-      history.push(`REJECTED(screen ${s.wins}/${SCREEN_SIZE}): ${proposal.rationale}`);
+      if (genomeHash(candDir) === genomeHash(GENOME_CURRENT)) {
+        log({ event: "noop_proposal", iteration: globalIter, rationale: proposal.rationale });
+        history.push(`INVALID(no-op, genome unchanged): ${proposal.rationale}`);
+        continue;
+      }
+      log({ event: "propose", iteration: globalIter, candidate: genomeHash(candDir), rationale: proposal.rationale });
+      console.log(`proposal: ${proposal.rationale}`);
+
+      const { screen, confirm } = pickPrompts(globalIter);
+
+      const s = await stage("screen", screen, candDir, GENOME_CURRENT);
+      console.log(`screen: ${s.wins}/${SCREEN_SIZE} wins, ${s.decisive} decisive`, s.results);
+      if (s.wins < WIN_THRESHOLD || s.decisive < MIN_DECISIVE) {
+        history.push(`REJECTED(screen ${s.wins}/${SCREEN_SIZE}): ${proposal.rationale}`);
+        continue;
+      }
+
+      // Confirm: fresh generations for BOTH genomes under a per-proposal artifact namespace
+      const confirmBase = path.join(RUNS, `confirm-${genomeHash(candDir)}`);
+      const c = await stage("confirm", confirm, candDir, GENOME_CURRENT, confirmBase);
+      console.log(`confirm: ${c.wins}/${CONFIRM_SIZE} wins, ${c.decisive} decisive, ${c.candidateFailures} cand failures`, c.results);
+      if (c.wins < WIN_THRESHOLD || c.decisive < MIN_DECISIVE || c.candidateFailures > 0) {
+        history.push(`REJECTED(confirm ${c.wins}/${CONFIRM_SIZE}, ${c.candidateFailures} gate regressions): ${proposal.rationale}`);
+        continue;
+      }
+
+      const promotedHash = promote(candDir, globalIter, proposal.rationale);
+      history.push(`ACCEPTED(${promotedHash}): ${proposal.rationale}`);
+      console.log(`ACCEPTED -> incumbent is now ${promotedHash}`);
+    } catch (e) {
+      // Infrastructure failure must not kill an hours-long run or masquerade as a design verdict
+      log({ event: "iteration_error", iteration: globalIter, error: String(e).slice(0, 400) });
+      console.error(`iteration ${globalIter} errored: ${e}`);
+    } finally {
       fs.rmSync(candDir, { recursive: true, force: true });
-      continue;
     }
-
-    const c = await stage("confirm", confirm, candDir, GENOME_CURRENT);
-    console.log(`confirm: ${c.wins}/${CONFIRM_SIZE} wins, ${c.decisive} decisive`, c.results);
-    if (c.wins < WIN_THRESHOLD || c.decisive < MIN_DECISIVE) {
-      history.push(`REJECTED(confirm ${c.wins}/${CONFIRM_SIZE}): ${proposal.rationale}`);
-      fs.rmSync(candDir, { recursive: true, force: true });
-      continue;
-    }
-
-    // Promote atomically: candidate becomes the incumbent genome
-    const promotedHash = genomeHash(candDir);
-    fs.rmSync(GENOME_CURRENT, { recursive: true, force: true });
-    fs.cpSync(candDir, GENOME_CURRENT, { recursive: true });
-    fs.rmSync(candDir, { recursive: true, force: true });
-    history.push(`ACCEPTED(${promotedHash}): ${proposal.rationale}`);
-    log({ event: "accept", iteration: i, genome: promotedHash, rationale: proposal.rationale });
-    console.log(`ACCEPTED -> incumbent is now ${promotedHash}`);
   }
 
   console.log("\nDone. History:");
